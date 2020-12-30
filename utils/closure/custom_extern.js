@@ -732,3 +732,7 @@ var DeepFragMakeGrid;
 DeepFragMakeGrid.pre_grid_gen = function(a, b, c) {};
 DeepFragMakeGrid.make_grid_given_channel = function(a, b, c, d, e, f) {};
 DeepFragMakeGrid.sum_channel_grids = function(a) {};
+
+var sessionStorage;
+sessionStorage.setItem = function(a, b) {};
+sessionStorage.getItem = function(a) {};
