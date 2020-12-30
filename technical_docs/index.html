@@ -1,0 +1,480 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>liggrep</title>
+	<meta name="description" content="Documentation for liggrep">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">liggrep</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>liggrep</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#webina-102" id="webina-102" style="color: inherit; text-decoration: none;">
+					<h1>Webina 1.0.2</h1>
+				</a>
+				<a href="#introduction" id="introduction" style="color: inherit; text-decoration: none;">
+					<h2>Introduction</h2>
+				</a>
+				<p>Webina is a JavaScript/WebAssembly library that runs AutoDock Vina, a popular
+					program for molecular docking, entirely in a web browser. The docking
+					calculations take place on the user&#39;s own computer rather than a remote
+					server. To encourage use, we have incorporated the Webina library into our own
+					Webina web app. The app includes a convenient interface so users can easily
+					setup their docking runs and analyze the results. A working version of the app
+					can be accessed free of charge from
+				<a href="http://durrantlab.com/webina">http://durrantlab.com/webina</a>.</p>
+				<a href="#compatibility" id="compatibility" style="color: inherit; text-decoration: none;">
+					<h2>Compatibility</h2>
+				</a>
+				<p>We have tested the Webina library on macOS 10.14.5, Windows 10 Home 1803, and
+					Ubuntu 18.04.3 LTS. Webina uses the SharedArrayBuffer JavaScript object to
+					allow multiple processes/threads to exchange data directly. This object is
+					currently available on Chromium-based browsers such as Google Chrome.
+				Additional browsers are likely to enable SharedArrayBuffer soon.</p>
+				<a href="#repository-contents" id="repository-contents" style="color: inherit; text-decoration: none;">
+					<h2>Repository Contents</h2>
+				</a>
+				<ul>
+					<li><code>dist/</code>: The production (distribution) files. If you wish to run the Webina
+						library or web app on your own server, these are the only files you need.
+						For convenience, the <code>webina.zip</code> contains the contents of the <code>dist/</code>
+						directory.<ul>
+							<li><code>dist/minimal_example.html</code> shows how to use the Webina library in your
+							own programs.</li>
+							<li><code>dist/index.html</code> starts the Webina web app (see
+								<a href="http://durrantlab.com/webina">http://durrantlab.com/webina</a> for a working
+							example).</li>
+						</ul>
+					</li>
+					<li><code>src/</code>: The Webina source files. You cannot use these files directly. They
+					must be compiled.</li>
+					<li><code>utils/</code>, <code>package.json</code>, <code>package-lock.json</code>, <code>tsconfig.json</code>: Files used
+					to compile the contents of the <code>src/</code> directory to the <code>dist/</code> directory.</li>
+					<li><code>CHANGELOG.md</code>, <code>CONTRIBUTORS.md</code>, <code>README.md</code>: Documentation files.</li>
+				</ul>
+				<a href="#description-of-use" id="description-of-use" style="color: inherit; text-decoration: none;">
+					<h2>Description of Use</h2>
+				</a>
+				<a href="#receptorligand-pdbqt-input-files" id="receptorligand-pdbqt-input-files" style="color: inherit; text-decoration: none;">
+					<h3>Receptor/Ligand PDBQT Input Files</h3>
+				</a>
+				<p>As is the case with command-line Vina, Webina accepts input receptor and
+					ligand files in the PDBQT format. The latest version of the Webina app
+					optionally interfaces with the PDBQTConvert app (included in the git
+					repository) to convert these files from other formats (e.g., PDB) to PDBQT.
+					But some advanced users may wish to provide their own PDBQT files. Such users
+				include:</p>
+				<ul>
+					<li>Users who wish to have more fine-grained control over the input. For
+						example, users who wish to specify protonation states, ring-conformational
+					forms, etc.</li>
+					<li>Users who wish to access the Webina JavaScript Library itself, independent
+						of our user-friendly Webina app. The library itself is simply Vina compiled
+						to WebAssembly. It cannot convert files because Vina cannot convert files,
+					so users must provide their own PDBQT files.</li>
+				</ul>
+				<a href="#preparing-the-receptor-pdbqt-file" id="preparing-the-receptor-pdbqt-file" style="color: inherit; text-decoration: none;">
+					<h4>Preparing the Receptor PDBQT File</h4>
+				</a>
+				<p>We recommend the following steps for those who wish to provide their own
+				receptor PDBQT files:</p>
+				<ul>
+					<li>Download the PDB file from the <a href="https://www.rcsb.org/">Protein Data Bank</a>.</li>
+					<li>Remove any ligands, ions, co-factors, water molecules, etc. that might
+						interfere with docking. Editing the PDB file in a text editor (e.g.,
+						<a href="https://notepad-plus-plus.org/">Notepad++</a>) and deleting the appropriate
+						<code>ATOM</code> and <code>HETATM</code> records is perhaps the easiest way to remove these
+					components.</li>
+					<li>Assign hydrogen atoms to the protein model. We recommend using the <a href="http://apbs-rest-test.westus2.cloudapp.azure.com/">PDB2PQR
+						server</a>, an online
+					website that adds hydrogen atoms per a user-specified pH.</li>
+					<li>Convert to the PDBQT format. The PDB2PQR server will produce a PQR file that
+						includes hydrogen atoms. The simplest way to convert this file to PDBQT is
+						with the free program <a href="http://openbabel.org/wiki/Main_Page">Open Babel</a>.
+						Here is an example command: <code>obabel -xr -ipqr my_receptor.pqr -O
+my_receptor.pdbqt</code></li>
+				</ul>
+				<a href="#preparing-the-ligand-pdbqt-file" id="preparing-the-ligand-pdbqt-file" style="color: inherit; text-decoration: none;">
+					<h4>Preparing the Ligand PDBQT File</h4>
+				</a>
+				<p>We recommend the following steps for those who wish to provide their own
+				ligand PDBQT files:</p>
+				<ul>
+					<li>Obtain a copy of your ligand file in SMILES-string or SDF format. Many
+						molecular databases provide small-molecule files in these common formats. If
+						necessary, you can convert to these formats using <a href="http://openbabel.org/wiki/Main_Page">Open
+							Babel</a>. Many <a href="https://pubchem.ncbi.nlm.nih.gov/edit3/index.html">online molecular
+						editors</a> also generate
+					SMILES strings by letting users draw their molecules.</li>
+					<li>Generate 3D models of your ligand. We recommend using the program
+						<a href="https://durrantlab.pitt.edu/gypsum-dl/">Gypsum-DL</a> to generate high-quality
+						models that account for alternate ionization, tautomeric, chiral, cis/trans
+						isomeric, and ring-conformational states (see <a href="https://durrantlab.pitt.edu/gypsum-dl/">the
+						documentation</a> for a description of
+					use).</li>
+					<li>Convert to PDBQT. Gypsum-DL will output ligand models in the SDF format. You
+						can convert these to PDBQT using <a href="http://openbabel.org/wiki/Main_Page">Open
+						Babel</a> like this: <code>obabel -isdf
+gypsum_output.sdf -O gypsum_output.pdbqt</code></li>
+					<li>It is also possible to convert directly from a SMILES or SDF file using only
+						Open Babel, though Open Babel lacks some of the features Gypsum-DL provides.
+						Here is an example command line: <code>obabel --gen3d -p -ismi ligand.smi -O
+ligand.pdbqt</code></li>
+				</ul>
+				<a href="#webina-javascript-library" id="webina-javascript-library" style="color: inherit; text-decoration: none;">
+					<h3>Webina JavaScript Library</h3>
+				</a>
+				<p>The Webina library is built on the AutoDock Vina 1.1.2 codebase, compiled to
+					WebAssembly. Web-app developers can incorporate the library into their own
+					computer-aided drug-discovery apps. See <code>dist/minimal_example.html</code> for a
+				simple example of how to use the Webina library in your own programs.</p>
+				<p>All Vina command-line parameters are accessible via the Webina library, with
+					the exception of the parameters used to specify input files. For security
+					reasons, web browsers do not allow JavaScript to directly access users&#39; file
+					systems. Instead, the contents of local files must be read through a file
+					input element, using a JavaScript FileReader object. To overcome this
+					limitation, the Webina library accepts text strings containing the contents of
+					the input PDBQT files, rather than the file paths normally specified via Vina
+				parameters such as <code>--receptor</code> and <code>--ligand</code>.</p>
+				<a href="#webina-web-app" id="webina-web-app" style="color: inherit; text-decoration: none;">
+					<h3>Webina Web App</h3>
+				</a>
+				<a href="#input-parameters-tab" id="input-parameters-tab" style="color: inherit; text-decoration: none;">
+					<h4>Input Parameters Tab</h4>
+				</a>
+				<p>We have incorporated the Webina JavaScript library into a Webina web app that
+					includes additional tools for setting up Webina runs and visualizing docking
+					results. On first visiting the Webina web app, the user encounters the &quot;Input
+					Parameters&quot; tab. This tab includes several subsections that are useful for
+				setting up a Webina run.</p>
+				<p><strong>Input PDBQT Files.</strong> The &quot;Input (PDBQT) Files&quot; subsection allows the user to
+					select their receptor and ligand files. The user can also optionally specify a
+					known-pose PDB or PDBQT ligand file. This file includes the ligand in its
+					experimentally determined, correct bound pose (e.g., per X-ray crystallography
+					or NMR). The known-pose file plays no role in the docking calculation; rather,
+					it serves as a positive-control reference for evaluating Webina-predicted
+					ligand poses. In our experience, it is often helpful to first benchmark Webina
+					(or Vina) against a known ligand before using the program to evaluate
+				compounds with unknown poses and binding affinities.</p>
+				<p>The &quot;Input (PDBQT) Files&quot; subsection also includes several options to simplify
+				the process of preparing/testing protein/ligand input files.</p>
+				<ul>
+					<li>If users wish only to test Webina without having to provide their own files,
+						they can click the &quot;Use Example Files&quot; button to automatically load example
+					receptor, ligand, and known-pose files.</li>
+					<li>If users specify receptor/ligand input files that are not in the required
+						PDBQT format, the Webina web app will optionally attempt to convert them to
+						PDBQT using the PDBQTConvert app. Interactions between the Webina and
+					PDBQTConvert apps occur at &quot;arm&#39;s length&quot; via an iframe.</li>
+					<li>If users&#39; receptor files include non-protein residues that might interfere
+						with docking (e.g., a co-crystallized ligand), they can remove all
+					non-protein atoms.</li>
+					<li>If users do not have a ligand file, they can use a web-based 2D molecular
+						editor to draw their ligand by hand. PDBQTConvert then converts that 2D
+					ligand representation to a 3D PDBQT file for docking.</li>
+				</ul>
+				<p><strong>Docking Box.</strong> The &quot;Docking Box&quot; subsection allows users to specify the
+					region of the receptor where Webina should attempt to pose the ligand. This
+					box-shaped volume is typically centered on a known protein pocket or cavity
+					where a small-molecule ligand might reasonably bind. If the box is large
+					enough to encompass the whole protein, Webina will attempt full-surface
+				docking (though so broad a search is not recommended).</p>
+				<p>To simplify the process of selecting a docking box, the Webina web app
+					automatically displays 3D models of the user-specified receptor and ligand
+					using the <a href="https://3dmol.csb.pitt.edu/">3Dmol.js JavaScript library</a>. By
+					default, the receptor and ligand are displayed using cartoon and sticks
+					representations, respectively. The user can toggle a surface representation as
+					required to identify candidate receptor pockets. A transparent yellow box is
+				superimposed on the structures to indicate the docking-box region.</p>
+				<p>When the user clicks the atoms of the receptor model, the Webina web app
+					recenters the docking box on the selected atom. Users can also adjust the
+					location and dimensions of the box using text fields below the molecular
+				visualization.</p>
+				<p><strong>Other Critical Parameters.</strong> The &quot;Other Critical Parameters&quot; subsection
+					allows the user to specify the number of CPUs and the exhaustiveness setting.
+					We chose to set these two parameters apart because they are particularly
+					important in a browser-based setting. Users expect command-line tools to
+					consume substantial computer resources, but they do not expect web apps to do
+					so. By default, Vina uses all available CPUs and an exhaustiveness setting of
+					eight. Webina has the same ability to consume CPUs and memory, but many users
+					will wish to adjust these parameters to avoid impacting the performance of
+				other programs and browser tabs.</p>
+				<p><strong>Advanced Parameters.</strong> The &quot;Advanced Parameters&quot; subsection allows users to
+					specify many additional parameters that are also available via command-line
+					Vina. In our experience, it is rarely necessary to adjust these parameters, so
+				they are hidden by default.</p>
+				<p><strong>Run Vina from Command Line.</strong> The &quot;Run Vina from Command Line&quot; subsection
+					aims to help Vina users who wish to use the Webina web app to setup their
+					docking boxes and user parameters. A text field provides a mock example of how
+					to use command-line Vina with the specified parameters. Users can copy this
+					example, modify it as needed, and paste it into their command-line terminals
+					to run the desired calculation with the standard Vina executable. This
+					subsection also includes links that allow the user to download the
+				receptor/ligand PDBQT files for command-line use.</p>
+				<p><strong>Starting the Webina Calculation.</strong> Once users click the &quot;Start Webina&quot;
+					button, the Webina app will switch to the &quot;Running Webina&quot; tab while Webina
+					executes. When the calculation is complete, the Webina web app will switch to
+					the &quot;Output&quot; tab (described below) where users can visualize the docking
+				results.</p>
+				<a href="#existing-vina-output-tab" id="existing-vina-output-tab" style="color: inherit; text-decoration: none;">
+					<h4>Existing Vina Output Tab</h4>
+				</a>
+				<p>The &quot;Existing Vina Output&quot; tab allows users to load and visualize the results
+					of previous Webina and Vina runs, without having to rerun the calculations.
+					Users must specify the existing receptor and Webina/Vina output file they wish
+					to visualize. They can also optionally specify a known-pose ligand file for
+					reference. Users who wish to test the web app without providing their own
+					files can click the &quot;Use Example Files&quot; button. Otherwise the &quot;Load Files&quot;
+				button will open and visualize the specified files.</p>
+				<a href="#output-tab" id="output-tab" style="color: inherit; text-decoration: none;">
+					<h4>Output Tab</h4>
+				</a>
+				<p>The &quot;Output&quot; tab allows users to visualize their Webina docking results. The
+					same tab also displays the output of any previous Webina/Vina calculations
+				that the user specifies via the &quot;Existing Vina Output&quot; tab.</p>
+				<p><strong>Visualization.</strong> The &quot;Visualization&quot; subsection uses 3Dmol.js to display the
+					receptor and docked molecule in cartoon/surface and sticks representation,
+					respectively. If the user has specified a known-pose ligand file, that pose is
+					also displayed in yellow sticks. Like Vina, Webina predicts several poses per
+					input ligand. A table below the visualization viewport lists each pose
+					together with associated information such as the docking score. Clicking on a
+					table row updates the 3D view with the specified pose so users can easily
+				examine all predicted poses.</p>
+				<p><strong>Output Files.</strong> The &quot;Output Files&quot; subsection shows the text contents of the
+					Webina output files. An associated &quot;Download&quot; button allows users to easily
+				save those files.</p>
+				<p><strong>Run Vina from Command Line.</strong> Similar to the &quot;Input Parameters&quot; tab, the
+					&quot;Output&quot; tab also includes a &quot;Run Vina from Command Line&quot; subsection. This
+					subsection makes it easy for users to reproduce Webina&#39;s results using
+					stand-alone Vina. It also reminds users what parameters they selected to
+				generate the displayed Webina output.</p>
+				<a href="#start-over-tab" id="start-over-tab" style="color: inherit; text-decoration: none;">
+					<h4>Start Over Tab</h4>
+				</a>
+				<p>The &quot;Start Over&quot; tab displays a simple button that allows the user to restart
+					the Webina app. A warning message reminds the user that they will lose the
+				results of the current Webina run unless they have saved their output files.</p>
+				<a href="#running-webina-on-your-own-computer" id="running-webina-on-your-own-computer" style="color: inherit; text-decoration: none;">
+					<h2>Running Webina on Your Own Computer</h2>
+				</a>
+				<p>Most users will wish to simply access the already compiled, publicly available
+					Webina web app at
+					<a href="http://durrantlab.com/webina">http://durrantlab.com/webina</a>. If you wish to
+					instead run Webina on your own UNIX-like computer (LINUX, macOS, etc.), follow
+				these instructions:</p>
+				<ol>
+					<li>Download the <code>webina.zip</code> file</li>
+					<li>Uncompress the file: <code>unzip webina.zip</code></li>
+					<li>Change to the new <code>webina/</code> directory: <code>cd webina</code></li>
+					<li>Start a local server.<ul>
+							<li>You can use <code>Node.js</code> and <code>npm</code>:<ul>
+									<li><code>npm install -g http-server</code></li>
+									<li><code>http-server</code></li>
+								</ul>
+							</li>
+							<li><a href="https://curiousprog.com/2018/10/08/serving-webassembly-files-with-a-development-web-server/">With some
+								coding</a>,
+								you can also use Python 2.7&#39;s built-in server:<ul>
+									<li><code>python -m SimpleHTTPServer 8000</code></li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>Access the server from your web-browser (e.g., <code>http://localhost:8000/</code>,
+					<code>http://0.0.0.0:8000/</code>, etc.)</li>
+				</ol>
+				<p>Running Webina on other operating systems (e.g., Windows) should be similar.</p>
+				<a href="#compiling-the-webina-web-app" id="compiling-the-webina-web-app" style="color: inherit; text-decoration: none;">
+					<h2>Compiling the Webina Web App</h2>
+				</a>
+				<p>The vast majority of users will not need to compile the Webina web app on their own.
+					Simply use the already compiled files in <code>dist/</code> or <code>webina.zip</code>.
+					If you need to make modifications to the source code, these instructions
+				should help with re-compiling on UNIX-like systems:</p>
+				<ol>
+					<li>Clone or download the git repository: <code>git clone https://git.durrantlab.pitt.edu/jdurrant/webina.git</code></li>
+					<li>Change into the new <code>webina</code> directory: <code>cd webina</code></li>
+					<li>Install the required <code>npm</code> packages: <code>npm install</code></li>
+					<li>Fix any vulnerabilities: <code>npm audit fix</code></li>
+					<li>Make sure Python is installed system wide, and that <code>python</code> works from the
+					command line (tested using Python 2.7.15)</li>
+					<li>To deploy a dev server: <code>npm run start</code></li>
+					<li>To compile the contents of <code>src/</code> to <code>dist/</code>: <code>npm run build</code></li>
+				</ol>
+				<p>Note: The Webina-library source code is located at <code>src/Webina/</code>. It has a
+					separate build system (<code>/src/Webina/compile.sh</code>). If you modify any of the
+					files in <code>/src/Webina/src/</code>, be sure to run <code>compile.sh</code> before building the
+				larger web app via <code>npm run build</code>.</p>
+				<a href="#compiling-the-autodock-vina-112-codebase-to-webassembly" id="compiling-the-autodock-vina-112-codebase-to-webassembly" style="color: inherit; text-decoration: none;">
+					<h2>Compiling the AutoDock Vina 1.1.2 Codebase to WebAssembly</h2>
+				</a>
+				<p>We used Emscripten version 1.38.48 to compile the Vina 1.1.2 codebase to
+					WebAssembly. As mentioned in our manuscript, the key to successful compilation
+					was to provide Emscripten with the required Boost include files. We used this
+				command to compile the Boost libraries:</p>
+				<p><code>./bjam link=static variant=release threading=multi runtime-link=static thread
+program_options filesystem system serialization</code></p>
+				<p>The resulting binaries were written to
+				<code>&lt;boost&gt;/bin.v2/libs/&lt;lib_name&gt;/build/gcc-1.38.48/release/link-static/runtime-link-static/threading-multi</code></p>
+				<p>These binaries had to be linked to <code>em++</code> during the compilation process by
+					modifying the Vina Makefile. Specifically, the included headers had to be
+				linked/copied under <code>&lt;emsdk_path&gt;/fastcomp/emscripten/system/include/</code>.</p>
+				<p>A detailed description of this process is beyond the scope of this README
+				file, though many helpful tips have been posed online.</p>
+				<a href="#notes-on-user-analytics" id="notes-on-user-analytics" style="color: inherit; text-decoration: none;">
+					<h2>Notes on User Analytics</h2>
+				</a>
+				<p>In some circumstances, the Webina web app may report usage statistics to
+					Google Analytics. These reports are useful for securing and justifying funding
+					for the Durrant lab. Usage statistics are only sent if the web-app URL
+					contains the substring &quot;durrantlab,&quot; so installing Webina on your own server
+					should prevent reporting. Even when using the publicly available version of
+					Webina hosted at <a href="http://durrantlab.com/webina">http://durrantlab.com/webina</a>,
+					information about your specific receptor and ligand files is never transmitted
+				to any remote server.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_deepfrag_interface_.html">&quot;<wbr>Deep<wbr>Frag/<wbr>Interface&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_forms_fileinput_.html">&quot;UI/<wbr>Forms/<wbr>File<wbr>Input&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_forms_formbutton_.html">&quot;UI/<wbr>Forms/<wbr>Form<wbr>Button&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_forms_formgroup_.html">&quot;UI/<wbr>Forms/<wbr>Form<wbr>Group&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_modal_openmodal_.html">&quot;UI/<wbr>Modal/<wbr>Open<wbr>Modal&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_resultstable_.html">&quot;UI/<wbr>Results<wbr>Table&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_subsection_.html">&quot;UI/<wbr>Sub<wbr>Section&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_tabs_deepfragoutput_.html">&quot;UI/<wbr>Tabs/<wbr>Deep<wbr>Frag<wbr>Output&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_tabs_deepfragparams_.html">&quot;UI/<wbr>Tabs/<wbr>Deep<wbr>Frag<wbr>Params&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_tabs_deepfragrunning_.html">&quot;UI/<wbr>Tabs/<wbr>Deep<wbr>Frag<wbr>Running&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_tabs_startover_.html">&quot;UI/<wbr>Tabs/<wbr>Start<wbr>Over&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_threedmol_.html">&quot;UI/<wbr>ThreeDMol&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_ui_ui_.html">&quot;UI/UI&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_utils_.html">&quot;<wbr>Utils&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_version_.html">&quot;<wbr>Version&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_vue_setup_.html">&quot;<wbr>Vue/<wbr>Setup&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_vue_store_.html">&quot;<wbr>Vue/<wbr>Store&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/_index_.html">&quot;index&quot;</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer>
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>

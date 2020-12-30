@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-us">
+
+    <head>
+        <!--
+            This file is part of DeepFrag, released under the Apache 2.0
+            License. See LICENSE.md or go to
+            https://opensource.org/licenses/Apache-2.0 for full details.
+            Copyright 2020 Jacob D. Durrant.
+        -->
+        <meta charset="utf-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DeepFrag</title>
+    </head>
+
+    <body>
+        <div id="app"></div>
+
+        <script type="module">
+            import * as DeepFragMakeGrid from "./DeepFrag/gridder/make_grid.js";
+
+            // Make make_grid available globally
+            window["DeepFragMakeGrid"] = DeepFragMakeGrid;
+        </script>
+
+        <script src="./DeepFrag/tf.min.js"></script>
+        <script src="./DeepFrag/smiles-drawer.min.js"></script>
+        <script src="vue.min.js"></script>
+        <script src="vuex.min.js"></script>
+        <script src="bootstrap-vue.min.js"></script>
+    </body>
+
+</html>
