@@ -16,3 +16,12 @@ deepfrag.zip
 **/old/**
 **/*.old/**
 update.sh
+javascript_grid_gen.bak*
+scripts_old
+*ipynb*
+old
+tmp
+*.pyc
+.DS_Store
+__target__
+__pycache__
