@@ -1,25 +1,26 @@
-# DeepFrag 1.0.0 #
+# DeepFrag Browser App 1.0.0
 
-## Introduction ##
+## Introduction
 
 DeepFrag is a deep-learning model that recommends strategies for lead
-optimization. The original implementation <span style="color:red;">(URL
-HERE)</span> is a Python script and so requires a certain degree of
-computational expertise. To encourage broader adoption, we have created the
-DeepFrag browser app, which provides a user-friendly graphical user interface
-that runs the DeepFrag model in users' web browsers. The browser app does not
-require users to upload their molecular structures to a third-party server,
-nor does it require the separate installation of any third-party software. It
-can be accessed free of charge, without requiring registration, at <span
-style="color:red;">(URL HERE)</span>.
+optimization. The [original
+implementation](http://durrantlab.com/deepfragmodel) is a Python script and so
+requires a certain degree of computational expertise. To encourage broader
+adoption, we have created the DeepFrag browser app, which provides a
+user-friendly graphical user interface that runs the DeepFrag model in users'
+web browsers. The browser app does not require users to upload their molecular
+structures to a third-party server, nor does it require the separate
+installation of any third-party software. It can be accessed free of charge,
+without requiring registration, at
+[http://durrantlab.com/deepfrag](http://durrantlab.com/deepfrag).
 
-## Compatibility ##
+## Compatibility
 
 We have tested the DeepFrag library on macOS 10.14.5, Windows 10 Home 1803,
 and Ubuntu 18.04.3 LTS. <span style="color:red;">(Update, and mention
 browsers.)</span>
 
-## Repository Contents ##
+## Repository Contents
 
 * `src/`: The DeepFrag source files. You cannot use these files directly. They
   must be compiled. For a compiled, ready-to-use copy of the DeepFrag browser
@@ -27,11 +28,12 @@ browsers.)</span>
   page](https://git.durrantlab.pitt.edu/jdurrant/deepfrag-app/-/releases).
 * `utils/`, `package.json`, `package-lock.json`, `tsconfig.json`: Files used
   to compile the contents of the `src/` directory to the `dist/` directory.
-* `CHANGELOG.md`, `CONTRIBUTORS.md`, `README.md`: Documentation files.
+* `CHANGELOG.md`, `CONTRIBUTORS.md`, `LICENSE.md`, `README.md`: Documentation
+  files.
 
-## Description of Use ##
+## Description of Use
 
-### Input Parameters Tab ###
+### Input Parameters Tab
 
 After visiting the DeepFrag browser-app URL, users will first encounter the
 "Input Parameters" tab. In the "Input Receptor and Ligand Files" subsection,
@@ -59,7 +61,7 @@ using the "Load Saved Data" button. Otherwise, the user simply clicks the
 is identical to the production model, but without grid rotation/fragment
 averaging.
 
-### Output Tab ###
+### Output Tab
 
 DeepFrag displays the "Output" tab once the calculations are complete. The
 "Visualization" subsection again displays the specified receptor, ligand, and
@@ -73,17 +75,17 @@ files to disk. These files include a more complete list of the predicted
 fragments (TSV format), the 3D coordinates of the selected growing point (JSON
 format), and the receptor and ligand files used for analysis (PDB format).
 
-### Start Over Tab ###
+### Start Over Tab
 
 The "Start Over" tab displays a simple button that allows the user to restart
 the DeepFrag app. A warning message reminds the user that they will lose the
 results of the current DeepFrag run unless they have saved their output files.
 
-## Running DeepFrag on Your Own Computer ##
+## Running the DeepFrag Browser App on Your Own Computer
 
 Most users will wish to simply access the already compiled, publicly available
-DeepFrag web app at <span style="color:red;">(URL HERE)</span>. If you wish to
-instead run DeepFrag on your own UNIX-like computer (LINUX, macOS, etc.),
+[DeepFrag browser app](http://durrantlab.com/deepfrag). If you wish to instead
+run DeepFrag browser app on your own UNIX-like computer (LINUX, macOS, etc.),
 follow these instructions:
 
 1. Download the compiled app from the [Releases
@@ -103,11 +105,11 @@ follow these instructions:
 
 Running DeepFrag on other operating systems (e.g., Windows) should be similar.
 
-## Compiling the DeepFrag Web App ##
+## Compiling the DeepFrag Browser App
 
 The vast majority of users will not need to compile the DeepFrag browser app
-on their own. Simply use the online version <span style="color:red;">(URL
-HERE)</span> or download the already compiled files from the [Releases
+on their own. Simply use the [online version](http://durrantlab.com/deepfrag)
+or download the already compiled files from the [Releases
 page](https://git.durrantlab.pitt.edu/jdurrant/deepfrag-app/-/releases). If
 you need to make modifications to the source code, these instructions should
 help with re-compiling on UNIX-like systems:
@@ -121,13 +123,14 @@ help with re-compiling on UNIX-like systems:
 6. To deploy a dev server: `npm run start`
 7. To compile the contents of `src/` to `dist/`: `npm run build`
 
-## Notes on User Analytics ##
+## Notes on User Analytics
 
-In some circumstances, the DeepFrag web app may report usage statistics to
+In some circumstances, the DeepFrag browser app may report usage statistics to
 Google Analytics. These reports are useful for securing and justifying funding
-for the Durrant lab. Usage statistics are only sent if the web-app URL
+for the Durrant lab. Usage statistics are only sent if the browser-app URL
 contains the substring "durrantlab," so installing DeepFrag on your own server
 should prevent reporting. Even when using the publicly available version of
-DeepFrag hosted at <span style="color:red;">(URL HERE)</span>, information
+DeepFrag hosted at
+[http://durrantlab.com/deepfrag](http://durrantlab.com/deepfrag), information
 about your specific receptor and ligand files is never transmitted to any
 remote server.
