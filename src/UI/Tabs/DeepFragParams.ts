@@ -379,8 +379,8 @@ export function setup(): void {
                         <file-input
                             label="Receptor"
                             id="receptor"
-                            description="Formats: PDB, SDF, XYZ, PQR, and MOL2. No hydrogen atoms required."
-                            accept=".pdb,.sdf,.xyz,.pqr,.mol2" convert=""
+                            description="Formats: PDB, XYZ, and PQR. No hydrogen atoms required."
+                            accept=".pdb,.xyz,.pqr" convert=""
                         >
                             <template v-slot:extraDescription>
                                 <span v-if="showKeepProteinOnlyLink">
@@ -395,12 +395,13 @@ export function setup(): void {
                         <file-input
                             label="Ligand"
                             id="ligand"
-                            description="Formats: PDB, SDF, XYZ, PQR, and MOL2. No hydrogen atoms required."
-                            accept=".pdb,.sdf,.xyz,.pqr,.mol2" convert=""
+                            description="Formats: PDB, SDF, XYZ, and MOL2. No hydrogen atoms required."
+                            accept=".pdb,.sdf,.xyz,.mol2" convert=""
                         >
                             <template v-slot:extraDescription></template>
                         </file-input>
                         <form-button
+                            id="useExampleFiles"
                             v-if="$store.state.ligandContents === '' && $store.state.receptorContents === ''"
                             @click.native="useExampleDeepFragInputFiles"
                             cls="float-right">Use Example Files</form-button>
@@ -445,9 +446,9 @@ export function setup(): void {
                             removed at the growing point marked with a yellow sphere.
                     </b-alert>
 
-                    <form-button :style="!validate(false) ? 'cursor:not-allowed' : ''" :disabled="!validate(false)" @click.native="onSubmitClick" variant="primary" cls="float-right mb-4 ml-2">Start DeepFrag</form-button>
+                    <form-button id="startDeepFrag" :style="!validate(false) ? 'cursor:not-allowed' : ''" :disabled="!validate(false)" @click.native="onSubmitClick" variant="primary" cls="float-right mb-4 ml-2">Start DeepFrag</form-button>
                     <form-button :style="!isLoadBtnEnabled ? 'cursor:not-allowed' : ''" :disabled="!isLoadBtnEnabled" @click.native="onLoadClick" variant="primary" cls="float-right mb-4 ml-2">Load Saved Data</form-button>
-                    <form-button :style="saveBtnStyle" :disabled="saveBtnDisabled" @click.native="onSaveClick" variant="primary" cls="float-right mb-4">Temporary Save</form-button>
+                    <form-button id="tempSave" :style="saveBtnStyle" :disabled="saveBtnDisabled" @click.native="onSaveClick" variant="primary" cls="float-right mb-4">Temporary Save</form-button>
 
                 </b-form>
                 <div v-else>

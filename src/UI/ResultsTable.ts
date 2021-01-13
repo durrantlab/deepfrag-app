@@ -96,7 +96,7 @@ export function setup(): void {
 
         // See https://github.com/bootstrap-vue/bootstrap-vue/issues/4343
         "template": `
-        <b-table :items="items" :fields="fields">
+        <b-table id="outputTable" :items="items" :fields="fields">
             <template #head()="data">
                 <b>{{ data.label }}</b>
             </template>

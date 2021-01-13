@@ -166,6 +166,7 @@ export function setup(): void {
                     :placeholder="placeholderToUse"
                     drop-placeholder="Drop file here..."
                     :class="id" :accept="accept"
+                    :id="'form-file-' + id"
                     :required="required"
                 ></b-form-file>
                 <small v-if="(!isValid) && (required === true)" alert tabindex="-1" class="text-danger form-text">{{invalidMsg}}</small>

@@ -135,7 +135,7 @@ export function setup(): void {
                             type="receptor"></threedmol>
                     </form-group>
                     <results-table></results-table>
-                    <p class="text-center mb-0">Execution time: {{time}} seconds</p>
+                    <p id="executionTime" class="text-center mb-0">Execution time: {{time}} seconds</p>
                 </sub-section>
 
                 <sub-section title="Output Files">
@@ -156,7 +156,7 @@ export function setup(): void {
                             class="text-monospace"
                             size="sm"
                         ></b-form-textarea>
-                        <form-button :small="true" @click.native="scoresCSVDownload">Download</form-button>
+                        <form-button id="downloadScores" :small="true" @click.native="scoresCSVDownload">Download</form-button>
                     </form-group>
 
                     <form-group
@@ -176,7 +176,7 @@ export function setup(): void {
                             class="text-monospace"
                             size="sm"
                         ></b-form-textarea>
-                        <form-button :small="true" @click.native="growingPointJSONDownload">Download</form-button>
+                        <form-button id="downloadGrowingPoint" :small="true" @click.native="growingPointJSONDownload">Download</form-button>
                     </form-group>
 
                     <form-group
@@ -196,7 +196,7 @@ export function setup(): void {
                             class="text-monospace"
                             size="sm"
                         ></b-form-textarea>
-                        <form-button :small="true" @click.native="receptorPDBDownload">Download</form-button>
+                        <form-button id="downloadReceptorPDB" :small="true" @click.native="receptorPDBDownload">Download</form-button>
                     </form-group>
 
                     <form-group
@@ -216,15 +216,15 @@ export function setup(): void {
                             class="text-monospace"
                             size="sm"
                         ></b-form-textarea>
-                        <form-button :small="true" @click.native="ligandPDBDownload">Download</form-button>
+                        <form-button id="downloadLigandPDB" :small="true" @click.native="ligandPDBDownload">Download</form-button>
                     </form-group>
                 </sub-section>
 
                 <sub-section title="Caveats">
                     <p>
                         DeepFrag was trained on data from the
-                        <a href="http://www.pdbbind.org.cn/" target="_blank">PDBbind
-                        database</a>. Accuracy may be artefactually high when
+                        <a href="https://bindingmoad.org/" target="_blank">Binding
+                        MOAD</a>. Accuracy may be artefactually high when
                         running DeepFrag on one of the proteins catalogued in that
                         database.
                     </p>
