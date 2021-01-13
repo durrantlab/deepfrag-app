@@ -49,15 +49,60 @@ function load_model(): Promise<any> {
 function run_inference(model: any, grid: any, smiles: any, fingerprints: any): any[] {
     // build tensor from flattened grid
     var tensor = tf.tensor(grid, [
-        1,
         GRID_CHANNELS,
         GRID_WIDTH,
         GRID_WIDTH,
         GRID_WIDTH,
     ]);
-    var pred = model["predict"](tensor);
 
-    var pred_b = pred["broadcastTo"]([smiles.length, FP_SIZE]);
+    // generate grid transpositions
+    const REVERSE = [
+        [],
+        [1],
+        [2],
+        [3],
+
+        // Note: a tensor of size 48x9x24x24x24 seems to be too big for the
+        // WebGL context. Using only 24 transpositions should give similar
+        // accuracy and allow for smaller tensors.
+
+        // Uncomment the following to use all 48 cube transpositions:
+        // [1,2],
+        // [1,3],
+        // [2,3],
+        // [1,2,3]
+    ];
+
+    const TRANSPOSE = [
+        [0,1,2,3],
+        [0,1,3,2],
+        [0,2,1,3],
+        [0,2,3,1],
+        [0,3,1,2],
+        [0,3,2,1],
+    ];
+
+    var tensors = [];
+
+    for (var ri = 0; ri < REVERSE.length; ++ri) {
+        for (var ti = 0; ti < TRANSPOSE.length; ++ti) {
+            var t = tf.reverse(tensor, REVERSE[ri]).transpose(TRANSPOSE[ti]);
+            tensors.push(t.reshape([
+                1,
+                GRID_CHANNELS,
+                GRID_WIDTH,
+                GRID_WIDTH,
+                GRID_WIDTH
+            ]));
+        }
+    }
+
+    var full_tensor = tf.concat(tensors);
+
+    var pred = model["predict"](full_tensor);
+    var avg_pred = tf.mean(pred, [0]);
+
+    var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
 
     // cosine similarity
     // (a dot b) / (|a| * |b|)
