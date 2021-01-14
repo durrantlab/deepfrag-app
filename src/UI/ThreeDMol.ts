@@ -115,7 +115,7 @@ let methodsFunctions = {
                         }
 
                         let ext = this.$store.state[typeStr + "FileName"].split(".");
-                        ext = ext[ext.length - 1].lower();
+                        ext = ext[ext.length - 1].toLowerCase();
 
                         this[typeStr + "Mol"] = this["viewer"]["addModel"](txt, ext, {"keepH": true});
                         this[typeStr + "Mol"].molType = typeStr;

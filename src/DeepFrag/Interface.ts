@@ -22,7 +22,24 @@ const GRID_CHANNELS = 9;
 const FP_SIZE = 2048;
 
 declare var tf;
-declare var DeepFragMakeGrid;
+
+/**
+ * Loads a remote javascript file.
+ * @param  {string} url  The url of the file.
+ * @returns Promise
+ */
+function loadJavaScriptFile(url: string): Promise<any> {
+    // See
+    // https://stackoverflow.com/questions/14521108/dynamically-load-js-inside-js
+    return new Promise<void>((resolve, reject) => {
+        var script = document.createElement("script");
+        script.onload = () => {
+            resolve();
+        };
+        script.src = url;
+        document.head.appendChild(script);
+    });
+}
 
 /**
  * Loads a remote resource.
@@ -164,23 +181,27 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
     // Load fingerprints.
     var fingerprintsPromise = get("./DeepFrag/fingerprints.json");
 
-    // Load the model.
-    var modelPromise = loadModel();
-
-    // Wait for DeepFrag module to load. Hackish.
-    var moduleLoadPromise = new Promise((resolve, reject) => {
-        var waitForMakeGrid = setInterval(() => {
-            if (window["DeepFragMakeGrid"] !== undefined) {
-                clearInterval(waitForMakeGrid);
-                resolve(window["DeepFragMakeGrid"]);
-            }
-        }, 500);
+    // load tf.js and the model.
+    var modelPromise = loadJavaScriptFile("./DeepFrag/tf.min.js").then(() => {
+        // Load the model.
+        return loadModel();
     });
+
+    // Load the gridder library.
+    var moduleLoadPromise = import(
+        /* webpackChunkName: "DeepFragMakeGrid" */
+        /* webpackMode: "lazy" */
+        "./gridder/make_grid"
+    );
+
+    // Start loading smiles drawer to display the fragment structures when the
+    // time comes.
+    var smilesDrawerPromise = loadJavaScriptFile("./DeepFrag/smiles-drawer.min.js")
 
     return Promise.all([
         fingerprintsPromise,
         modelPromise,
-        moduleLoadPromise,
+        moduleLoadPromise
     ]).then((vals) => {
         // Give Vue time to update the message
         return new Promise((resolve, reject) => {
@@ -204,6 +225,7 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
         if (true) {  // for debugging. put in false to use above dummy scores.
             const fp = vals[0];
             const model = vals[1];
+            const DeepFragMakeGrid = vals[2];
 
             // Aggregate the fragment fingerprints into a single tensor for
             // vector math.
@@ -246,6 +268,10 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
             scoresCSV += (j + 1).toString() + "," + scores[j][0] + "," + scores[j][1].toString() + "\n";
         }
 
-        return Promise.resolve([scores, scoresCSV]);
+        // Load smiles drawer to display the files.
+        return smilesDrawerPromise.then(() => {
+            // Now ready to go.
+            return Promise.resolve([scores, scoresCSV]);
+        });
     });
 }

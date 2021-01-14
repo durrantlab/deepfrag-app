@@ -18,7 +18,8 @@ let forProd = {
             new OptimizeCSSAssetsPlugin({}),
             new ClosurePlugin({
                 mode: 'STANDARD', // 'AGGRESSIVE_BUNDLE', // 'STANDARD',
-                platform: "java"
+                platform: "java",
+                test: /^(?!DeepFragMakeGrid).+/
             }, {
                 // debug: true,
                 // renaming: false
