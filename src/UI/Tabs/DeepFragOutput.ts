@@ -12,9 +12,21 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-
 declare var Vue;
 declare var FileSaver;
+
+function getFileSaver(): Promise<any> {
+    // Couldn't get dynamic imports to work here...
+    // return imdport(
+    /* webpackChunkName: "FileSaver" */
+    /* webpackMode: "lazy" */
+    //     "../../../node_modules/file-saver/dist/FileSaver"
+    // ).then((FileSaver) => {
+
+    //     debugger;
+    // })
+    return Promise.resolve(FileSaver);
+}
 
 /** An object containing the vue-component computed functions. */
 let computedFunctions = {
@@ -69,7 +81,9 @@ let methodsFunctions = {
      */
     "scoresCSVDownload"(): void {
         var blob = new Blob([this["scoresCSV"]], {type: "text/plain;charset=utf-8"});
-        FileSaver.saveAs(blob, "deepfrag-scores.csv");
+        getFileSaver().then((FileSaver) => {
+            FileSaver.saveAs(blob, "deepfrag-scores.csv");
+        });
     },
 
     /**
@@ -81,7 +95,9 @@ let methodsFunctions = {
             [this["growingPointJSON"]],
             {type: "text/plain;charset=utf-8"}
         );
-        FileSaver.saveAs(blob, "growing-point.json");
+        getFileSaver().then((FileSaver) => {
+            FileSaver.saveAs(blob, "growing-point.json");
+        });
     },
 
     /**
@@ -90,12 +106,14 @@ let methodsFunctions = {
      */
     "receptorPDBDownload"(): void {
         var blob = new Blob([this["receptorPdbTxtFrom3DMol"]], {type: "text/plain;charset=utf-8"});
-        FileSaver.saveAs(
-            blob,
-            (
-                this.$store.state["receptorFileName"] + ".pdb"
-            ).replace(".pdb.pdb", ".pdb")
-        );
+        getFileSaver().then((FileSaver) => {
+            FileSaver.saveAs(
+                blob,
+                (
+                    this.$store.state["receptorFileName"] + ".pdb"
+                ).replace(".pdb.pdb", ".pdb")
+            );
+        });
     },
 
     /**
@@ -104,12 +122,14 @@ let methodsFunctions = {
      */
     "ligandPDBDownload"(): void {
         var blob = new Blob([this["ligandPdbTxtFrom3DMol"]], {type: "text/plain;charset=utf-8"});
-        FileSaver.saveAs(
-            blob,
-            (
-                this.$store.state["ligandFileName"] + ".pdb"
-            ).replace(".pdb.pdb", ".pdb")
-        );
+        getFileSaver().then((FileSaver) => {
+            FileSaver.saveAs(
+                blob,
+                (
+                    this.$store.state["ligandFileName"] + ".pdb"
+                ).replace(".pdb.pdb", ".pdb")
+            );
+        });
     }
 }
 

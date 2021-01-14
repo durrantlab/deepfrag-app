@@ -26,3 +26,4 @@ tmp
 __target__
 __pycache__
 technical_docs
+.htaccess
