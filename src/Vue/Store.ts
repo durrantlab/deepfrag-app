@@ -90,7 +90,8 @@ export const store = new Vuex.Store({
         "time": 0,  // Used to keep track of execution time.
         "selectedAtomClickAction": "select",
         "showFileInputs": true,
-        "isExampleData": false
+        "isExampleData": false,
+        "numPseudoRotations": 4
     },
     "mutations": {
         /**
@@ -192,14 +193,23 @@ export const store = new Vuex.Store({
             state[payload.type + "FileName"] = payload.filename;
         },
 
+        /**
+         * Update the ligand file to reflect any deleted atoms. To trigger pdb
+         * formatting.
+         * @param  {any} state  The state object.
+         * @returns void
+         */
         "updateLigandContentsPerViewerLigand"(state: any): void {
-            // Update the ligand file to reflect any deleted atoms.
-            // To trigger pdb formatting.
             state["ligandFileName"] = (state["ligandFileName"] + ".pdb").replace(".pdb.pdb", ".pdb");
             state["ligandContents"] = state["ligandPdbTxtFrom3DMol"];
         }
     },
     "actions": {
+        /**
+         * Saves VueX values to local storage. For later loading.
+         * @param  {any} context  The context object.
+         * @returns void
+         */
         "saveVueXToLocalStorage"(context: any): void {
             // Record any deleted atoms first.
             context.commit("updateLigandContentsPerViewerLigand");
@@ -214,6 +224,13 @@ export const store = new Vuex.Store({
             }
             sessionStorage.setItem("deepFragSaveData", JSON.stringify(data));
         },
+
+        /**
+         * Loads vuex data from local storage. For loading previously saved
+         * data.
+         * @param  {any} context  The context object.
+         * @returns void
+         */
         "loadVueXFromLocalStorage"(context: any): void {
             let data = JSON.parse(
                 sessionStorage.getItem("deepFragSaveData")
@@ -252,6 +269,13 @@ export const store = new Vuex.Store({
             });
         },
 
+        /**
+         * A funtion sued to load a receptor and ligand simultaneously.
+         * Necessary because the ligand must be delayed for proper viewing in
+         * the 3Dmoljs viewport. Used when loading example data, etc.
+         * @param  {*} context  The context object.
+         * @param  {IReceptorLigandContents} payload
+         */
         "loadReceptorLigandSimultaneously"(context: any, payload: IReceptorLigandContents) {
             return new Promise((resolve: Function, reject: Function) => {
                 setTimeout(() => {  // Vue.nextTick doesn't work...

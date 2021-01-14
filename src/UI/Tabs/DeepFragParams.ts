@@ -81,14 +81,26 @@ let computedFunctions = {
         }
     },
 
+    /**
+     * Whether to show the receptor and ligand file inputs.
+     * @returns boolean
+     */
     "showFileInputs"(): boolean {
         return this.$store.state["showFileInputs"];
     },
 
+    /**
+     * Whether to show information about Pin1p (because example data).
+     * @returns boolean
+     */
     "isExampleData"(): boolean {
         return this.$store.state["isExampleData"];
     },
 
+    /**
+     * Whether to "Load Saved Data" button should be enabled.
+     * @returns boolean
+     */
     "isLoadBtnEnabled"(): boolean {
         if (!this["canLoad"]) {
             return false;
@@ -113,6 +125,10 @@ let computedFunctions = {
         return true;
     },
 
+    /**
+     * Whether the "Temporary Save" button should be enabled.
+     * @returns boolean
+     */
     "saveBtnDisabled"(): boolean {
         if (!this["validate"](false)) {
             return true;
@@ -123,6 +139,11 @@ let computedFunctions = {
         return false;
     },
 
+    /**
+     * The style to apply to the save button. Faking a delay so the user
+     * realizes the info has been saved.
+     * @returns string
+     */
     "saveBtnStyle"(): string {
         if (this["fakeSaving"]) {
             return "cursor:wait;";
@@ -131,6 +152,28 @@ let computedFunctions = {
             return 'cursor:not-allowed;';
         }
         return "";
+    },
+
+    "numPseudoRotations": {
+        /**
+         * Gets the number of rotations for improving accuracy.
+         * @returns number
+         */
+        get(): number {
+            return this.$store.state["numPseudoRotations"];
+        },
+
+        /**
+         * Sets the number of rotations for improving accuracy.
+         * @param  {string} val  The numebr of rotations, but as a string.
+         * @returns void
+         */
+        set(val: string): void {
+            this.$store.commit("setVar", {
+                name: "numPseudoRotations",
+                val: parseInt(val)
+            });
+        }
     }
 }
 
@@ -221,7 +264,8 @@ let methodsFunctions = {
                             deepFragParams["center_x"],
                             deepFragParams["center_y"],
                             deepFragParams["center_z"],
-                        ]
+                        ],
+                        this["numPseudoRotations"]
                     ).then((vals: any[]) => {
                         this.$store.commit("setVar", {
                             name: "time",
@@ -235,6 +279,11 @@ let methodsFunctions = {
         }
     },
 
+    /**
+     * Runs when the user clicks the "Temporary Save" button. Saves the
+     * information to local storage.
+     * @returns void
+     */
     "onSaveClick"(): void {
         this["fakeSaving"] = true;
         this.$store.dispatch("saveVueXToLocalStorage").then(() => {
@@ -245,6 +294,11 @@ let methodsFunctions = {
         });
     },
 
+    /**
+     * Runs when the user clicks the "Load Saved Data" button. Loads the
+     * information from local storage.
+     * @returns void
+     */
     "onLoadClick"(): void {
         this.$store.dispatch("loadVueXFromLocalStorage");
     },
@@ -407,6 +461,14 @@ export function setup(): void {
                             cls="float-right">Use Example Files</form-button>
                     </sub-section>
 
+                    <b-alert :show="isExampleData">
+                        Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1 (<b><i>Hs</i>Pin1p</b>)
+                        bound to a small-molecule inhibitor (PDB ID: <a
+                            href="https://www.rcsb.org/structure/2XP9"
+                            target="_blank">2XP9</a>). A ligand <b>carboxylate moiety</b> has been
+                            removed at the growing point marked with a yellow sphere.
+                    </b-alert>
+
                     <sub-section title="Molecular Viewer">
                         <form-group
                             label=""
@@ -438,13 +500,25 @@ export function setup(): void {
                     </sub-section>
 
                     <span style="display:none;">{{validate(false)}}</span>  <!-- Hackish. Just to make reactive. -->
-                    <b-alert :show="isExampleData">
-                        Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1 (<b><i>Hs</i>Pin1p</b>)
-                        bound to a small-molecule inhibitor (PDB ID: <a
-                            href="https://www.rcsb.org/structure/2XP9"
-                            target="_blank">2XP9</a>). A ligand <b>carboxylate moiety</b> has been
-                            removed at the growing point marked with a yellow sphere.
-                    </b-alert>
+
+                    <form-group
+                        v-if="bothReceptorAndLigandSpecified"
+                        label=""
+                        id="rotations-count"
+                        description=""
+                    >
+                        <label for="numPseudoRotationsRange">
+                            Rotating/reflecting molecules to generate multiple
+                            predictions improves accuracy but requires more computer
+                            memory. Large values may crash the app.
+                        </label>
+                        <b-form-input id="numPseudoRotationsRange" v-model="numPseudoRotations" type="range" min="1" max="32"></b-form-input>
+                        <div style="text-align:center;margin-top:-10px;"><small>
+                            ({{numPseudoRotations}}
+                            <span v-if="numPseudoRotations > 1">rotations/reflections)</span>
+                            <span v-else="numPseudoRotations > 1">rotation/reflection)</span>
+                        </small></div>
+                    </form-group>
 
                     <form-button id="startDeepFrag" :style="!validate(false) ? 'cursor:not-allowed' : ''" :disabled="!validate(false)" @click.native="onSubmitClick" variant="primary" cls="float-right mb-4 ml-2">Start DeepFrag</form-button>
                     <form-button :style="!isLoadBtnEnabled ? 'cursor:not-allowed' : ''" :disabled="!isLoadBtnEnabled" @click.native="onLoadClick" variant="primary" cls="float-right mb-4 ml-2">Load Saved Data</form-button>

@@ -12,6 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
+import * as Store from "../Vue/Store";
 
 // fixed parameters
 const GRID_WIDTH = 24;
@@ -34,7 +35,7 @@ function get(x: string): Promise<any> {
  * Loads the model.
  * @returns Promise  Fulfills when model loaded.
  */
-function load_model(): Promise<any> {
+function loadModel(): Promise<any> {
     return tf.loadGraphModel("./DeepFrag/model/voxel_web/model.json");
 }
 
@@ -44,9 +45,10 @@ function load_model(): Promise<any> {
  * @param  {*} grid          The grid.
  * @param  {*} smiles        The smiles strings.
  * @param  {*} fingerprints  The fingerprints.
+ * @param  {number} numPseudoRotations  The number of grid rotations.
  * @returns any[]  The scores.
  */
-function run_inference(model: any, grid: any, smiles: any, fingerprints: any): any[] {
+function runInference(model: any, grid: any, smiles: any, fingerprints: any, numPseudoRotations: number): any[] {
     // build tensor from flattened grid
     var tensor = tf.tensor(grid, [
         GRID_CHANNELS,
@@ -67,10 +69,10 @@ function run_inference(model: any, grid: any, smiles: any, fingerprints: any): a
         // accuracy and allow for smaller tensors.
 
         // Uncomment the following to use all 48 cube transpositions:
-        // [1,2],
-        // [1,3],
-        // [2,3],
-        // [1,2,3]
+        [1,2],
+        [1,3],
+        [2,3],
+        [1,2,3]
     ];
 
     const TRANSPOSE = [
@@ -84,6 +86,8 @@ function run_inference(model: any, grid: any, smiles: any, fingerprints: any): a
 
     var tensors = [];
 
+
+    let cnt = 1;
     for (var ri = 0; ri < REVERSE.length; ++ri) {
         for (var ti = 0; ti < TRANSPOSE.length; ++ti) {
             var t = tf.reverse(tensor, REVERSE[ri]).transpose(TRANSPOSE[ti]);
@@ -94,12 +98,34 @@ function run_inference(model: any, grid: any, smiles: any, fingerprints: any): a
                 GRID_WIDTH,
                 GRID_WIDTH
             ]));
+            cnt++;
+            if (cnt >= numPseudoRotations) {
+                break;
+            }
+        }
+        if (cnt > numPseudoRotations) {
+            break;
         }
     }
 
     var full_tensor = tf.concat(tensors);
 
-    var pred = model["predict"](full_tensor);
+    try {
+        // throw 'test error';
+        var pred = model["predict"](full_tensor);  // error
+    } catch(err) {
+        let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
+        let numRots = Store.store.state["numPseudoRotations"];
+        msg += (numRots > 1)
+            ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
+            : "You may need to use a more powerful computer."
+        Store.store.commit("openModal", {
+            title: "Error Predicting Fragments!",
+            body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
+        });
+        return [];
+    }
+
     var avg_pred = tf.mean(pred, [0]);
 
     var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
@@ -126,17 +152,18 @@ function run_inference(model: any, grid: any, smiles: any, fingerprints: any): a
 
 /**
  * Runs deepfrag.
- * @param  {string} receptorPdb    The receptor PDB string.
- * @param  {string} ligandPdb      The ligand PDB string.
- * @param  {Array<number>} center  The location of the growing point.
+ * @param  {string} receptorPdb         The receptor PDB string.
+ * @param  {string} ligandPdb           The ligand PDB string.
+ * @param  {Array<number>} center       The location of the growing point.
+ * @param  {number} numPseudoRotations  The number of grid rotations.
  * @returns Promise  A promise that fulfills when done. Resolves with scores.
  */
-export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: number[]): Promise<any> {
+export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: number[], numPseudoRotations: number): Promise<any> {
     // Load fingerprints.
     var fingerprintsPromise = get("./DeepFrag/fingerprints.json");
 
     // Load the model.
-    var modelPromise = load_model();
+    var modelPromise = loadModel();
 
     // Wait for DeepFrag module to load. Hackish.
     var moduleLoadPromise = new Promise((resolve, reject) => {
@@ -194,7 +221,7 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
 
             // Run inference. Scores is an array of arrays, [SMILES,
             // score], ordered from best score to worst.
-            scores = run_inference(model, grid, smiles, fingerprints);
+            scores = runInference(model, grid, smiles, fingerprints, numPseudoRotations);
         }
 
         // Get values as csv

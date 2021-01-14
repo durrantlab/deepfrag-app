@@ -41,7 +41,7 @@ export function setup(): void {
                 </div> -->
 
                 <b-jumbotron class="jumbo" style="background-image:url(${Utils.curPath()}deepfrag_logo.jpg);" header="DeepFrag ${VERSION}" lead="${byLine}">
-                    <p>Brought to you by the <a target="_blank" href="http://durrantlab.com">Durrant Lab</a>.</p>
+                    <p>Brought to you by the <a target="_blank" href="http://durrantlab.com">Durrant Lab</a> and NIH 5R01GM132353-02.</p>
                     <b-button variant="primary" target="_blank" href="http://durrantlab.com">More Info</b-button>
                 </b-jumbotron>
 

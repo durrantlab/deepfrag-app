@@ -49,6 +49,10 @@ let computedFunctions = {
         },
     },
 
+    /**
+     * The placeholder to show in the file input.
+     * @returns string
+     */
     "placeholderToUse"(): string {
         let possibleName = this.$store.state[this["id"] + "FileName"];
         if (possibleName !== "") {
