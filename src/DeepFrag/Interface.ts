@@ -14,6 +14,8 @@
 
 import * as Store from "../Vue/Store";
 
+declare var Vue;
+
 // fixed parameters
 const GRID_WIDTH = 24;
 const GRID_CHANNELS = 9;
@@ -180,6 +182,20 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
         modelPromise,
         moduleLoadPromise,
     ]).then((vals) => {
+        // Give Vue time to update the message
+        return new Promise((resolve, reject) => {
+            Store.store.commit("setVar", {
+                name: "waitingMsg",
+                val: "Running DeepFrag in your browser..."
+            })
+
+            Vue.nextTick(() => {
+                setTimeout(() => {
+                    resolve(vals);
+                }, 500);
+            });
+        });
+    }).then((vals) => {
         let scores;
 
         // To debug.

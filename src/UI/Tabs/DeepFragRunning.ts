@@ -25,7 +25,7 @@ export function setup(): void {
             <div class="text-center">
                 <b-spinner style="width: 4rem; height: 4rem;" label="Working"></b-spinner>
                 <br /><br />
-                <p>Running DeepFrag in your browser.</p>
+                <p>{{this.$store.state.waitingMsg}}</p>
                 <p>This page may become unresponsive while performing calculations.
                    Need to stop DeepFrag but can't close this tab? Use your browser or
                    operating-system Task Manager.</p>

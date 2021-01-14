@@ -33,7 +33,6 @@ let computedFunctions = {
         get(): number {
             return this.$store.state["showKeepProteinOnlyLink"];
         },
-
         set(val: number): void {
             this.$store.commit("setVar", {
                 name: "showKeepProteinOnlyLink",
@@ -230,6 +229,11 @@ let methodsFunctions = {
             });
 
             jQuery("body").addClass("waiting");
+
+            this.$store.commit("setVar", {
+                name: "waitingMsg",
+                val: "Downloading DeepFrag files to predict fragments in your browser (about 40 MB)..."
+            })
 
             Vue.nextTick(() => {
                 this.$store.commit("setVar", {

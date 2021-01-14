@@ -727,6 +727,11 @@ tf.norm = function(a, b, c) {};
 tf.maximum = function(a, b) {};
 tf.div = function(a, b) {};
 tf.arraySync = function() {};
+tf.transpose = function(a) {};
+tf.reshape = function(a) {};
+tf.reverse = function(a, b) {};
+tf.concat = function(a) {};
+tf.mean = function(a, b) {};
 
 var DeepFragMakeGrid;
 DeepFragMakeGrid.pre_grid_gen = function(a, b, c) {};

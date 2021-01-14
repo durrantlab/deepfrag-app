@@ -91,7 +91,8 @@ export const store = new Vuex.Store({
         "selectedAtomClickAction": "select",
         "showFileInputs": true,
         "isExampleData": false,
-        "numPseudoRotations": 4
+        "numPseudoRotations": 4,
+        "waitingMsg": ""
     },
     "mutations": {
         /**
