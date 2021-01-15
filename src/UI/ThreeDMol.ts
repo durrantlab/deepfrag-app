@@ -241,8 +241,8 @@ let methodsFunctions = {
         if (window.location.href.indexOf("?test") !== -1) {
             // If the URL has ?test in it, you're running a testcafe test.
             // Need to auto click one of the ligand atoms.
-            let mol = this.ligandMol;
-            let atoms = mol.selectedAtoms({});
+            let mol = this["ligandMol"];
+            let atoms = mol["selectedAtoms"]({});
             let atmIdx = Math.floor(Math.random() * atoms.length);
             let atom = atoms[atmIdx];
             this.clickAtom(atom, mol, "ligand");
