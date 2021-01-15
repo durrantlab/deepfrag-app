@@ -19,6 +19,9 @@ import { VERSION } from "./Version";
 
 console.log("DeepFrag Web App " + VERSION);
 
+// @ts-ignore
+console.log(__BUILD_TIME__);
+
 declare var ga;
 
 VueSetup.setup();
