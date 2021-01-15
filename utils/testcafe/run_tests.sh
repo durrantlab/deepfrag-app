@@ -1,7 +1,7 @@
 # export URL="http://localhost:8082/"
 # export URL="http://0.0.0.0:8000/"
-export URL="http://localhost:8081/?test"
-# export URL="https://durrantlab.pitt.edu/apps/deepfrag/beta/"
+# export URL="http://localhost:8081/?test"
+export URL="https://durrantlab.pitt.edu/deepfrag?test"
 
 # Combine all the test typescript files
 cat main.template.ts | sed "s|URLURL|${URL}|g"> tmp.ts
