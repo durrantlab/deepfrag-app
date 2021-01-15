@@ -173,6 +173,27 @@ let computedFunctions = {
                 val: parseInt(val)
             });
         }
+    },
+
+    /**
+     * Gets the styles to apply to the warning, with the goal of encouraging
+     * users to not use too many rotations.
+     * @returns string
+     */
+    "manyRotsWarningStyle"(): string {
+        let ratio = (this["numPseudoRotations"] - 4) / 28.0;
+        if (ratio < 0) { ratio = 0; }
+        console.log(ratio);
+        let color: number[] = [];
+        if (ratio <= 0.5) {
+            let ratio2 = ratio / 0.5;
+            color = this.betweenColors([55, 58, 60], [175, 175, 0], ratio2);
+        } else {
+            let ratio2 = (ratio - 0.5) / 0.5;
+            color = this.betweenColors([175, 175, 0], [255, 0, 0], ratio2);
+        }
+        // console.log(ratio);
+        return `color:rgb(${color[0]}, ${color[1]}, ${color[2]}); ${ratio > 0.25 ? "font-weight:bold;" : ""}`;
     }
 }
 
@@ -410,6 +431,23 @@ let methodsFunctions = {
         });
 
         jQuery("body").removeClass("waiting");
+    },
+
+    /**
+     * Interpolates betwewen two colors.
+     * @param  {number[]} color1  The first color, [r, g, b].
+     * @param  {number[]} color2  The second color, [r, g, b].
+     * @param  {number}   ratio   The ratio.
+     * @returns number[]  The interpolated color.
+     */
+    betweenColors(color1: number[], color2: number[], ratio: number): number[] {
+        let result: number[] = [];
+        for (let i = 0; i < 3; i++) {
+            result.push(
+                ratio * (color2[i] - color1[i]) + color1[i]
+            );
+        }
+        return result;
     }
 }
 
@@ -514,7 +552,7 @@ export function setup(): void {
                         <label for="numPseudoRotationsRange">
                             Rotating/reflecting molecules to generate multiple
                             predictions improves accuracy but requires more computer
-                            memory. Large values may crash the app.
+                            memory. <span :style="manyRotsWarningStyle">Large values may crash the app.</a>
                         </label>
                         <b-form-input id="numPseudoRotationsRange" v-model="numPseudoRotations" type="range" min="1" max="32"></b-form-input>
                         <div style="text-align:center;margin-top:-10px;"><small>
