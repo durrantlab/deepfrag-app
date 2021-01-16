@@ -16,9 +16,22 @@ without requiring registration, at
 
 ## Compatibility
 
-We have tested the DeepFrag library on macOS 10.14.5, Windows 10 Home 1803,
-and Ubuntu 18.04.3 LTS. <span style="color:red;">(Update, and mention
-browsers.)</span>
+We have tested the DeepFrag library on macOS 10.14.5, Windows 10.0.19041 Home,
+and Ubuntu Linux 18.04.5 LTS.
+
+|Browser                |Operating System          |
+|-----------------------|--------------------------|
+|Chrome 88.0.4324.87    | macOS 10.14.5            |
+|Firefox 84.0           | macOS 10.14.5            |
+|Safari 13.1.1          | macOS 10.14.5            |
+|Chrome 87.0.4280.141   | Windows 10.0.19041 Home  |
+|Firefox 84.0.2         | Windows 10.0.19041 Home  |
+|Edge 87.0.664.75       | Windows 10.0.19041 Home  |
+|Chrome 87.0.4280.141   | Android 10               |
+|Firefox 84.1.4         | Android 10               |
+|Safari 14              | iPhone SE iOS 14.3       |
+|Chromium 87.0.4280.141 | Ubuntu Linux 18.04.5 LTS |
+|Firefox 84.0.2         | Ubuntu Linux 18.04.5 LTS |
 
 ## Repository Contents
 
