@@ -38,7 +38,8 @@ let computedFunctions = {
                 "Rank": i + 1,
                 "SMILES": dataItem[0],
                 "Structure": `<canvas style="width:${CANVAS_WIDTH + 2 * CANVAS_PADDING}px;height:${CANVAS_HEIGHT + 2 * CANVAS_PADDING}px;" data-smiles="${smilesForVis}"></canvas>`,
-                "Score": dataItem[1].toFixed(3)
+                "Score": dataItem[1].toFixed(3),
+                "Download": [i, dataItem[0]]
             });
         }
         return items;
@@ -79,7 +80,8 @@ export function setup(): void {
                     {"key": "Rank", "class": ["no-mobile"]},
                     {"key": "SMILES", "class": ["results-table-col"], "thClass": "no-text-wrap"},
                     {"key": "Structure", "class": ["results-table-col", "center-table-text"], "thClass": "hidden-mobile"},
-                    {"key": "Score", "class": ["results-table-col", "center-table-text"], "thClass": "no-text-wrap"}
+                    {"key": "Score", "class": ["results-table-col", "center-table-text"], "thClass": "no-text-wrap"},
+                    {"key": "Download", "class": ["results-table-col", "center-table-text"], "thClass": "no-text-wrap"}
                 ]
             }
         },
@@ -107,6 +109,12 @@ export function setup(): void {
                 <div class="inner-table-struct">
                     <span v-html="data.value"></span>
                 </div>
+            </template>
+            <template #head(Download)="data">
+                <b>Download Full Ligand</b>
+            </template>
+            <template #cell(Download)="data">
+                <embed-frag :index="data.value[0]" :fragment="data.value[1]"></embed-frag>
             </template>
         </b-table>
         `,
