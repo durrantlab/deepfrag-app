@@ -47,12 +47,15 @@ rm t
 cd -
 
 # Also create a ZIP file of the dist directory, for convenient distribution.
-mv dist deepfrag
-zip -r deepfrag.zip deepfrag
-mv deepfrag dist
+mv dist deepfrag-app
+zip -r deepfrag-app.zip deepfrag-app
+mv deepfrag-app dist
 
 # Build the docs while you're at it.
 . utils/build/make_docs.sh
 
 # Let the user know that compilation is finished. Works only on macOS.
 say "Beep"
+
+echo ""
+echo "DON'T FORGET TO ADD ZIP FILE TO RELEASES!"
