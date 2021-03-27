@@ -170,6 +170,60 @@ function runInference(model: any, grid: any, smiles: any, fingerprints: any, num
 }
 
 /**
+ * Compute the Hamilton product of two quaternion vectors.
+ */
+function hamiltonProduct(a: number[], b: number[]): number[] {
+    // https://en.wikipedia.org/wiki/Quaternion?Hamilton%20product#Hamilton_product
+    return [
+        (a[0]*b[0]) - (a[1]*b[1]) - (a[2]*b[2]) - (a[3]*b[3]),
+        (a[0]*b[1]) + (a[1]*b[0]) - (a[2]*b[3]) + (a[3]*b[2]),
+        (a[0]*b[2]) + (a[1]*b[3]) + (a[2]*b[0]) - (a[3]*b[1]),
+        (a[0]*b[3]) - (a[1]*b[2]) + (a[2]*b[1]) + (a[3]*b[0]),
+    ]
+}
+
+/**
+ * Rotate a list of coordinates about a point with a quaternion rotation vector.
+ * @param coords    A list of objects with 'x','y','z' values.
+ * @param rot       A length 4 quaternion describing the rotation.
+ * @param center    The point to rotate about (x,y,z)
+ * @returns         A new list of coordinate objects after rotation.
+ */
+function quaternionRotation(coords: any, rot: number[], center: number[]): any {
+    var rot_coords = [];
+
+    var R = rot;
+    var Rp = [R[0], -R[1], -R[2], -R[3]];
+
+    for (var i = 0; i < coords.length; ++i) {
+        var p = [
+            0, 
+            coords[i].x - center[0],
+            coords[i].y - center[1],
+            coords[i].z - center[2]
+        ];
+        var p2 = hamiltonProduct(hamiltonProduct(R, p), Rp);
+
+        rot_coords.push({
+            'x': p2[1] + center[0],
+            'y': p2[2] + center[1],
+            'z': p2[3] + center[2],
+        });
+    }
+
+    return rot_coords;
+}
+
+/**
+ * Returns a random unit quaternion.
+ */
+function randomRotation(): number[] {
+    var r = tf.randomNormal([4]);
+    var n = tf.div(r, r.norm());
+    return n.arraySync();
+}
+
+/**
  * Runs deepfrag.
  * @param  {string} receptorPdb         The receptor PDB string.
  * @param  {string} ligandPdb           The ligand PDB string.
@@ -241,6 +295,11 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
             let preGridGenData = DeepFragMakeGrid.pre_grid_gen(
                 receptorPdb, ligandPdb, center
             );
+
+            // Rotate the receptor and ligand about the connection point.
+            var rot = randomRotation();
+            preGridGenData[0] = quaternionRotation(preGridGenData[0], rot, center); // receptor
+            preGridGenData[2] = quaternionRotation(preGridGenData[2], rot, center); // parent
 
             // Generate the grids for each channel.
             let grids = [];
