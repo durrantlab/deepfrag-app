@@ -1,4 +1,4 @@
-# DeepFrag Browser App 1.0.0
+# DeepFrag Browser App 1.0.1
 
 ## Introduction
 
@@ -103,16 +103,15 @@ follow these instructions:
 
 1. Download the compiled app from the [Releases
    page](https://git.durrantlab.pitt.edu/jdurrant/deepfrag-app/-/releases)
-2. Uncompress the file: `unzip deepfrag.zip`
-3. Change to the new `deepfrag/` directory: `cd deepfrag`
+2. Uncompress the file: `unzip deepfrag-app.zip`
+3. Change to the new `deepfrag-app/` directory: `cd deepfrag-app`
 4. Start a local server.
    * You can use `Node.js` and `npm`:
      * `npm install -g http-server`
      * `http-server`
-   * [With some
-     coding](https://curiousprog.com/2018/10/08/serving-webassembly-files-with-a-development-web-server/),
-     you can also use Python 2.7's built-in server:
-     * `python -m SimpleHTTPServer 8000`
+   * Or Python:
+     * Python 3: `python3 -m http.server 8000`
+     * Python 2 (out of date): `python -m SimpleHTTPServer 8000`
 5. Access the server from your web-browser (e.g., `http://localhost:8000/`,
    `http://0.0.0.0:8000/`, etc.)
 

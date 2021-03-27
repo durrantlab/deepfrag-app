@@ -13,6 +13,7 @@ src/example/src/
 dist
 webina.zip
 deepfrag.zip
+deepfrag-app.zip
 **/old/**
 **/*.old/**
 update.sh
