@@ -183,7 +183,6 @@ let computedFunctions = {
     "manyRotsWarningStyle"(): string {
         let ratio = (this["numPseudoRotations"] - 4) / 28.0;
         if (ratio < 0) { ratio = 0; }
-        console.log(ratio);
         let color: number[] = [];
         if (ratio <= 0.5) {
             let ratio2 = ratio / 0.5;
