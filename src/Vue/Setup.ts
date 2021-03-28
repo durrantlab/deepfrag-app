@@ -21,6 +21,7 @@ import * as StartOver from "../UI/Tabs/StartOver";
 import * as FormGroup from "../UI/Forms/FormGroup";
 import * as ThreeDMol from "../UI/ThreeDMol";
 import * as ResultsTable from "../UI/ResultsTable";
+import * as EmbedFrag from "../UI/EmbedFrag";
 import * as OpenModal from "../UI/Modal/OpenModal";
 import * as SubSection from "../UI/SubSection";
 import * as FormButton from "../UI/Forms/FormButton";
@@ -44,6 +45,7 @@ export function setup(): void {
     ThreeDMol.setup();
     FileInput.setup();
     ResultsTable.setup();
+    EmbedFrag.setup();
     DeepFragParams.setup();
     DeepFragRunning.setup();
     DeepFragOutput.setup();
