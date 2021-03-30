@@ -88,6 +88,20 @@ function fuseMol(parent: any, frag: any, parentIdx: number, fragIdx: number): vo
             parent.AddBondWithParam(atom_map[begin], atom_map[end], order, 0, -1);
         }
     }
+
+    // Decrement implicit hydrogen count on parent connection atom.
+    //
+    // For certain nonsensical inputs this isn't possible because the implicit
+    // hydrogen count is already zero. For example: trying to fuse a fragment
+    // to the oxygen in a ketone. In those cases, we can generate somewhat
+    // realistic molecules by decrementing the formal charge instead.
+    var conn = parent.GetAtom(parentIdx);
+    var currHCount = conn.GetImplicitHCount()
+    if (currHCount >= 1) {
+        conn.SetImplicitHCount(currHCount - 1);
+    } else {
+        conn.SetFormalCharge(conn.GetFormalCharge() - 1);
+    }
 }
 
 /**

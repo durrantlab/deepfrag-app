@@ -69,6 +69,20 @@ define("Fuser", ["require", "exports"], function (require, exports) {
                 parent.AddBondWithParam(atom_map[begin], atom_map[end], order, 0, -1);
             }
         }
+        // Decrement implicit hydrogen count on parent connection atom.
+        //
+        // For certain nonsensical inputs this isn't possible because the implicit
+        // hydrogen count is already zero. For example: trying to fuse a fragment
+        // to the oxygen in a ketone. In those cases, we can generate somewhat
+        // realistic molecules by decrementing the formal charge instead.
+        var conn = parent.GetAtom(parentIdx);
+        var currHCount = conn.GetImplicitHCount();
+        if (currHCount >= 1) {
+            conn.SetImplicitHCount(currHCount - 1);
+        }
+        else {
+            conn.SetFormalCharge(conn.GetFormalCharge() - 1);
+        }
     }
     /**
      * Load and fuse a parent/ligand combination.
@@ -237,7 +251,7 @@ define("App", ["require", "exports"], function (require, exports) {
     function () {
         var Fuser;
         waitButton("downloadSMILESBtn", true).then(function () {
-            return new Promise(function (resolve_1, reject_1) { require(["./Fuser"], resolve_1, reject_1); });
+            return new Promise(function (resolve_1, reject_1) { require(["Fuser"], resolve_1, reject_1); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Promise.resolve(Fuser.loadOB());
@@ -259,7 +273,7 @@ define("App", ["require", "exports"], function (require, exports) {
     function () {
         var Fuser;
         waitButton("downloadSDFBtn", true).then(function () {
-            return new Promise(function (resolve_2, reject_2) { require(["./Fuser"], resolve_2, reject_2); });
+            return new Promise(function (resolve_2, reject_2) { require(["Fuser"], resolve_2, reject_2); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Fuser.loadOB();
@@ -282,7 +296,7 @@ define("App", ["require", "exports"], function (require, exports) {
     function () {
         var Fuser;
         waitButton("downloadPDBBtn", true).then(function () {
-            return new Promise(function (resolve_3, reject_3) { require(["./Fuser"], resolve_3, reject_3); });
+            return new Promise(function (resolve_3, reject_3) { require(["Fuser"], resolve_3, reject_3); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Fuser.loadOB();
