@@ -59,6 +59,52 @@ function loadModel(): Promise<any> {
 }
 
 /**
+ * A generator that provides four tensors at a time.
+ * @param  {number[][]} REVERSE             Describes possible reflections.
+ * @param  {number[][]} TRANSPOSE           Describes possible transpositions.
+ * @param  {any}        tensor              The original tensor to be
+ *                                          rotated/reflected.
+ * @param  {number}     numPseudoRotations  The number of pseudo rotations.
+ */
+function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: any, numPseudoRotations: number) {
+    // Returns four grids at a time, to avoid using too much memory.
+    var tensors = [];
+    let cnt = 1;
+    for (var ri = 0; ri < REVERSE.length; ++ri) {
+        for (var ti = 0; ti < TRANSPOSE.length; ++ti) {
+            var t = tf.reverse(tensor, REVERSE[ri]).transpose(TRANSPOSE[ti]);
+            let newTensor = t.reshape([
+                1,
+                GRID_CHANNELS,
+                GRID_WIDTH,
+                GRID_WIDTH,
+                GRID_WIDTH
+            ]);
+            tensors.push(newTensor);
+
+            if (tensors.length === 4) {
+                yield tensors;
+                tensors = [];
+            }
+
+            cnt++;
+            if (cnt >= numPseudoRotations) {
+                break;
+            }
+        }
+        if (cnt > numPseudoRotations) {
+            break;
+        }
+    }
+
+    // Could be ones left over if num pseuo rotations not divisible by four.
+    if (tensors.length > 0) {
+        yield tensors;
+        tensors = [];  // no trigger garbage collection?
+    }
+}
+
+/**
  * Runs inference and gets the scores.
  * @param  {*} model         The model.
  * @param  {*} grid          The grid.
@@ -103,49 +149,34 @@ function runInference(model: any, grid: any, smiles: any, fingerprints: any, num
         [0,3,2,1],
     ];
 
-    var tensors = [];
-
-
-    let cnt = 1;
-    for (var ri = 0; ri < REVERSE.length; ++ri) {
-        for (var ti = 0; ti < TRANSPOSE.length; ++ti) {
-            var t = tf.reverse(tensor, REVERSE[ri]).transpose(TRANSPOSE[ti]);
-            tensors.push(t.reshape([
-                1,
-                GRID_CHANNELS,
-                GRID_WIDTH,
-                GRID_WIDTH,
-                GRID_WIDTH
-            ]));
-            cnt++;
-            if (cnt >= numPseudoRotations) {
-                break;
-            }
+    const tensorGen = tensorGenerator(REVERSE, TRANSPOSE, tensor, numPseudoRotations);
+    let preds = [];
+    let tensorsBatch = tensorGen.next();
+    while (tensorsBatch.done === false) {
+        let tensors = tensorsBatch.value;
+        var full_tensor = tf.concat(tensors);
+        try {
+            // throw 'test error';
+            preds.push(model["predict"](full_tensor));  // error
+        } catch(err) {
+            let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
+            let numRots = Store.store.state["numPseudoRotations"];
+            msg += (numRots > 1)
+                ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
+                : "You may need to use a more powerful computer."
+            Store.store.commit("openModal", {
+                title: "Error Predicting Fragments!",
+                body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
+            });
+            return [];
         }
-        if (cnt > numPseudoRotations) {
-            break;
-        }
+
+        tensorsBatch = tensorGen.next();
     }
 
-    var full_tensor = tf.concat(tensors);
+    let allPreds = tf.concat(preds);
 
-    try {
-        // throw 'test error';
-        var pred = model["predict"](full_tensor);  // error
-    } catch(err) {
-        let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
-        let numRots = Store.store.state["numPseudoRotations"];
-        msg += (numRots > 1)
-            ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
-            : "You may need to use a more powerful computer."
-        Store.store.commit("openModal", {
-            title: "Error Predicting Fragments!",
-            body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
-        });
-        return [];
-    }
-
-    var avg_pred = tf.mean(pred, [0]);
+    var avg_pred = tf.mean(allPreds, [0]);
 
     var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
 
@@ -197,7 +228,7 @@ function quaternionRotation(coords: any, rot: number[], center: number[]): any {
 
     for (var i = 0; i < coords.length; ++i) {
         var p = [
-            0, 
+            0,
             coords[i].x - center[0],
             coords[i].y - center[1],
             coords[i].z - center[2]
