@@ -114,88 +114,93 @@ function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: an
  * @returns any[]  The scores.
  */
 function runInference(model: any, grid: any, smiles: any, fingerprints: any, numPseudoRotations: number): any[] {
-    // build tensor from flattened grid
-    var tensor = tf.tensor(grid, [
-        GRID_CHANNELS,
-        GRID_WIDTH,
-        GRID_WIDTH,
-        GRID_WIDTH,
-    ]);
+    // Run tf ops inside tf.tidy to automatically clean up intermediate tensors.
+    const scores = tf.tidy(() => {
+        // build tensor from flattened grid
+        var tensor = tf.tensor(grid, [
+            GRID_CHANNELS,
+            GRID_WIDTH,
+            GRID_WIDTH,
+            GRID_WIDTH,
+        ]);
 
-    // generate grid transpositions
-    const REVERSE = [
-        [],
-        [1],
-        [2],
-        [3],
+        // generate grid transpositions
+        const REVERSE = [
+            [],
+            [1],
+            [2],
+            [3],
 
-        // Note: a tensor of size 48x9x24x24x24 seems to be too big for the
-        // WebGL context. Using only 24 transpositions should give similar
-        // accuracy and allow for smaller tensors.
+            // Note: a tensor of size 48x9x24x24x24 seems to be too big for the
+            // WebGL context. Using only 24 transpositions should give similar
+            // accuracy and allow for smaller tensors.
 
-        // Uncomment the following to use all 48 cube transpositions:
-        [1,2],
-        [1,3],
-        [2,3],
-        [1,2,3]
-    ];
+            // Uncomment the following to use all 48 cube transpositions:
+            [1,2],
+            [1,3],
+            [2,3],
+            [1,2,3]
+        ];
 
-    const TRANSPOSE = [
-        [0,1,2,3],
-        [0,1,3,2],
-        [0,2,1,3],
-        [0,2,3,1],
-        [0,3,1,2],
-        [0,3,2,1],
-    ];
+        const TRANSPOSE = [
+            [0,1,2,3],
+            [0,1,3,2],
+            [0,2,1,3],
+            [0,2,3,1],
+            [0,3,1,2],
+            [0,3,2,1],
+        ];
 
-    const tensorGen = tensorGenerator(REVERSE, TRANSPOSE, tensor, numPseudoRotations);
-    let preds = [];
-    let tensorsBatch = tensorGen.next();
-    while (tensorsBatch.done === false) {
-        let tensors = tensorsBatch.value;
-        var full_tensor = tf.concat(tensors);
-        try {
-            // throw 'test error';
-            preds.push(model["predict"](full_tensor));  // error
-        } catch(err) {
-            let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
-            let numRots = Store.store.state["numPseudoRotations"];
-            msg += (numRots > 1)
-                ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
-                : "You may need to use a more powerful computer."
-            Store.store.commit("openModal", {
-                title: "Error Predicting Fragments!",
-                body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
-            });
-            return [];
+        const tensorGen = tensorGenerator(REVERSE, TRANSPOSE, tensor, numPseudoRotations);
+        let preds = [];
+        let tensorsBatch = tensorGen.next();
+        while (tensorsBatch.done === false) {
+            let tensors = tensorsBatch.value;
+            var full_tensor = tf.concat(tensors);
+            try {
+                // throw 'test error';
+                preds.push(model["predict"](full_tensor));  // error
+            } catch(err) {
+                let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
+                let numRots = Store.store.state["numPseudoRotations"];
+                msg += (numRots > 1)
+                    ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
+                    : "You may need to use a more powerful computer."
+                Store.store.commit("openModal", {
+                    title: "Error Predicting Fragments!",
+                    body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
+                });
+                return [];
+            }
+
+            tensorsBatch = tensorGen.next();
         }
 
-        tensorsBatch = tensorGen.next();
-    }
+        let allPreds = tf.concat(preds);
 
-    let allPreds = tf.concat(preds);
+        var avg_pred = tf.mean(allPreds, [0]);
 
-    var avg_pred = tf.mean(allPreds, [0]);
+        var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
 
-    var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
+        // cosine similarity
+        // (a dot b) / (|a| * |b|)
+        var dot = tf.sum(tf.mul(fingerprints, pred_b), 1);
+        var n1 = tf.norm(fingerprints, 2, 1);
+        var n2 = tf.norm(pred_b, 2, 1);
+        var d = tf.maximum(tf.mul(n1, n2), 1e-6);
+        var dist = tf.div(dot, d).arraySync();
 
-    // cosine similarity
-    // (a dot b) / (|a| * |b|)
-    var dot = tf.sum(tf.mul(fingerprints, pred_b), 1);
-    var n1 = tf.norm(fingerprints, 2, 1);
-    var n2 = tf.norm(pred_b, 2, 1);
-    var d = tf.maximum(tf.mul(n1, n2), 1e-6);
-    var dist = tf.div(dot, d).arraySync();
+        // join smiles with distance
+        var scores = [];
+        for (var i = 0; i < smiles.length; ++i) {
+            scores.push([smiles[i], dist[i]]);
+        }
 
-    // join smiles with distance
-    var scores = [];
-    for (var i = 0; i < smiles.length; ++i) {
-        scores.push([smiles[i], dist[i]]);
-    }
+        // sort predictions
+        scores.sort((a, b) => b[1] - a[1]);
 
-    // sort predictions
-    scores.sort((a, b) => b[1] - a[1]);
+        return scores;
+    });
 
     return scores;
 }
