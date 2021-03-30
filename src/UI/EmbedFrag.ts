@@ -12,62 +12,34 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-import {makeSMILES, make3D} from "../DeepFrag/Fuser"
-
 declare var Vue;
-declare var FileSaver;
-
-function getFileSaver(): Promise<any> {
-    return Promise.resolve(FileSaver);
-}
 
 export function setup(): void {
     Vue.component('embed-frag', {
         props: ['index', 'fragment'],
-        template: `
-        <div style="display:flex;">
-            <form-button :small="true" @click.native="makeSMILES">SMILES</form-button>
-            <form-button :small="true" @click.native="makeSDF">SDF</form-button>
-            <form-button :small="true" @click.native="makePDB">PDB</form-button>
-        </div>
+
+        // <form-button :small="true" @click.native="makeSMILES">SMILES</form-button>
+        // <form-button :small="true" @click.native="makeSDF">SDF</form-button>
+        // <form-button :small="true" @click.native="makePDB">PDB</form-button>
+
+        template: /* html */ `
+            <div style="display:flex;">
+                <form-button :small="true" @click.native="downloadMolecule">Download</form-button>
+            </div>
         `,
         methods: {
-            makeSMILES() {
-                var ligandPDB = this.$store.state["ligandPdbTxtFrom3DMol"];
-                var fragSMILES = this.fragment;
-                var center = this.$store.state["growingPointJSON"];
+            "downloadMolecule"(): void {
+                let ligandPDB = this.$store.state["ligandPdbTxtFrom3DMol"];
+                let fragSMILES = this.fragment;
+                let center = this.$store.state["growingPointJSON"];
 
-                makeSMILES(ligandPDB, fragSMILES, center).then((smi) => {
-                    var blob = new Blob([smi + '\n'], {type: "text/plain;charset=utf-8"});
-                    getFileSaver().then((FileSaver) => {
-                        FileSaver.saveAs(blob, `deepfrag_${this.$store.state["ligandFileName"]}_pred_${this.index}.smi`);
-                    });
+                import("lz-string").then((LZString) => {
+                    // let ligandPDBCompressed = LZString.compress(ligandPDB);
+                    let ligandPDBCompressed = LZString.compressToEncodedURIComponent(ligandPDB);
+                    let url = `fuser-app/index.html?pdb=${ligandPDBCompressed}&smi=${encodeURIComponent(fragSMILES)}&x=${encodeURIComponent(center[0].toString())}&y=${encodeURIComponent(center[1].toString())}&z=${encodeURIComponent(center[2].toString())}`
+                    window.open(url);
                 });
-            },
-            makeSDF() {
-                var ligandPDB = this.$store.state["ligandPdbTxtFrom3DMol"];
-                var fragSMILES = this.fragment;
-                var center = this.$store.state["growingPointJSON"];
-
-                make3D(ligandPDB, fragSMILES, center, 'sdf').then((smi) => {
-                    var blob = new Blob([smi + '\n'], {type: "text/plain;charset=utf-8"});
-                    getFileSaver().then((FileSaver) => {
-                        FileSaver.saveAs(blob, `deepfrag_${this.$store.state["ligandFileName"]}_pred_${this.index}.sdf`);
-                    });
-                });
-            },
-            makePDB() {
-                var ligandPDB = this.$store.state["ligandPdbTxtFrom3DMol"];
-                var fragSMILES = this.fragment;
-                var center = this.$store.state["growingPointJSON"];
-
-                make3D(ligandPDB, fragSMILES, center, 'pdb').then((smi) => {
-                    var blob = new Blob([smi + '\n'], {type: "text/plain;charset=utf-8"});
-                    getFileSaver().then((FileSaver) => {
-                        FileSaver.saveAs(blob, `deepfrag_${this.$store.state["ligandFileName"]}_pred_${this.index}.pdb`);
-                    });
-                });
-            },
+            }
         }
     })
 }

@@ -1,0 +1,147 @@
+<!--
+The Fuser web app adds a molecular fragment to a parent molecule. Copyright
+(C) 2021, Jacob Durrant.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
+Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Fuser Web App</title>
+
+        <meta name="description"
+              content="Generates a 3D structure of a small molecule, given an input molecule (PDB) and fragment SMILES string.">
+        <meta name="author" content="Durrant Lab">
+
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            .show-if-prepopulated {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container-fluid" style="padding-top:15px; padding-bottom:15px;">
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>
+                        Fuser Web App
+                    </h3>
+                    <p>
+                        The Fuser Web App adds a molecular fragment (SMILES)
+                        to an existing small molecule (PDB). Click the buttons
+                        below to download the molecule + fragment (fused)
+                        compound in your preferred format. <a
+                        href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1"
+                        target="_blank">GPLv2 licensed.</a>
+                    </p>
+                </div>
+            </div>
+            <div class="row show-if-prepopulated">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <button type="submit" id="expand" class="hide-on-expand btn-sm btn btn-primary">
+                            View All Options
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <hr class="mb-3 mt-2 hide-on-expand" />
+            <div class="row" id="pdb-row" style="display:none;">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="pdb">Ligand PDB Contents</label>
+                        <textarea class="form-control" id="pdb" rows="3" style="white-space:pre; font-family:monospace;"></textarea>
+                        <p class="help-block">
+                            Paste the text of your PDB file here.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="smi-row" style="display:none;">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="smi">
+                            Fragment SMILES
+                        </label>
+                        <input type="text" class="form-control" id="smi">
+                        <p class="help-block">
+                            Mark the branching off point with an asterisk (*).
+                            For example, <i>*CCC(=O)O</i>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4" id="x-row" style="display:none;">
+                    <div class="form-group">
+                        <label for="x">X Coordinate</label>
+                        <input type="text" class="form-control" id="x">
+                        <p class="help-block">
+                            Fragment connection point (X coordinate). Should
+                            correspond to one of the PDB atoms.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4" id="y-row" style="display:none;">
+                    <div class="form-group">
+                        <label for="y">Y Coordinate</label>
+                        <input type="text" class="form-control" id="y">
+                        <p class="help-block">
+                            Fragment connection point (Y coordinate). Should
+                            correspond to one of the PDB atoms.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4" id="z-row" style="display:none;">
+                    <div class="form-group">
+                        <label for="z">Z Coordinate</label>
+                        <input type="text" class="form-control" id="z">
+                        <p class="help-block">
+                            Fragment connection point (Z coordinate). Should
+                            correspond to one of the PDB atoms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <hr class="mb-4 mt-1" /> -->
+
+            <button type="submit" id="downloadSMILESBtn" class="btn btn-primary">
+                Download SMILES
+            </button>
+            <button type="submit" id="downloadSDFBtn" class="btn btn-primary">
+                Download SDF
+            </button>
+            <button type="submit" id="downloadPDBBtn" class="btn btn-primary">
+                Download PDB
+            </button>
+        </div>
+
+        <script src="external/jquery.min.js"></script>
+        <script src="openbabel/openbabel.js"></script>
+        <script src="external/lz-string.min.js"></script>
+        <script data-main="js/App" src="external/require.min.js"></script>
+    </body>
+
+</html>

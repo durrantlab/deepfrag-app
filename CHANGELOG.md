@@ -10,6 +10,9 @@ Changes
   `README.md` to reflect this change.
 * Updated the `README.md` with instructions describing how to run a local
   server using Python3.
+* Added the Fuser web app, which can add a molecular fragment (SMILES) to a
+  small molecule (PDB). This web app is entirely separate from DeepFrag. It is
+  separately licensed under the GPLv2 license.
 
 1.0.0
 -----

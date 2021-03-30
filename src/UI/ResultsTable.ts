@@ -97,7 +97,7 @@ export function setup(): void {
         },
 
         // See https://github.com/bootstrap-vue/bootstrap-vue/issues/4343
-        "template": `
+        "template": /* html */ `
         <b-table id="outputTable" :items="items" :fields="fields">
             <template #head()="data">
                 <b>{{ data.label }}</b>
@@ -111,7 +111,7 @@ export function setup(): void {
                 </div>
             </template>
             <template #head(Download)="data">
-                <b>Download Full Ligand</b>
+                <b>Download</b>
             </template>
             <template #cell(Download)="data">
                 <embed-frag :index="data.value[0]" :fragment="data.value[1]"></embed-frag>

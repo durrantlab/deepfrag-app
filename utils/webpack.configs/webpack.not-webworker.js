@@ -62,6 +62,10 @@ module.exports = merge(common, {
                 from: 'src/DeepFrag',
                 to: 'DeepFrag'
             },
+            {
+                from: 'fuser-app',
+                to: 'fuser-app'
+            },
         ]),
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output

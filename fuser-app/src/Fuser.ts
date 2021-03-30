@@ -1,23 +1,51 @@
-// Copyright 2021 Jacob Durrant
+// The Fuser web app adds a molecular fragment to a parent molecule. Copyright
+// (C) 2021, Jacob Durrant.
 
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not
-// use this file except in compliance with the License. You may obtain a copy
-// of the License at
+// This program is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by the Free
+// Software Foundation; either version 2 of the License, or (at your option)
+// any later version.
 
-// http://www.apache.org/licenses/LICENSE-2.0
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+// more details.
 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-// License for the specific language governing permissions and limitations
-// under the License.
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc., 51
+// Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 
 declare function OpenBabelModule();
 
 // Loaded via script tag.
-var OB = OpenBabelModule();
-window['OB'] = OB;
+var OB;
 
+/**
+ * Waits for open babel to load.
+ * @returns Promise  The promise returned when it is ready.
+ */
+export function loadOB(): Promise<any> {
+    if (OB !== undefined) {
+        // Already loaded.
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+        OB = OpenBabelModule();
+        window['OB'] = OB;
+
+        let checkReady = () => {
+            if (OB.ObConversionWrapper) {
+                resolve(undefined);
+            } else {
+                setTimeout(checkReady.bind(this), 500);
+            }
+        }
+
+        checkReady();
+    });
+}
 
 /**
  * Merge a frag OBMol into a parent OBMol. The parent OBMol is updated in-place.
@@ -65,11 +93,12 @@ function fuseMol(parent: any, frag: any, parentIdx: number, fragIdx: number): vo
 /**
  * Load and fuse a parent/ligand combination.
  * @param  {string} ligandPDB           The ligand PDB string.
- * @param  {string} fragmentSMILES      SMILES string of the fragment.
+ * @param  {string} smi      SMILES string of the fragment.
  * @param  {Array<number>} center       The location of the growing point.
+ * @param  {boolean} optimizeFragGeometry  Whether to optimize the fragment geometry.
  * Returns an OBMol with a fused "full ligand."
  */
-function loadFused(ligandPDB: string, fragmentSMILES: string, center: number[]): Promise<any> {
+function loadFused(ligandPDB: string, smi: string, center: number[], optimizeFragGeometry = false): Promise<any> {
     return new Promise((resolve, reject) => {
         // Load ligand and fragment as OBMol's.
         var conv = new OB.ObConversionWrapper()
@@ -77,7 +106,7 @@ function loadFused(ligandPDB: string, fragmentSMILES: string, center: number[]):
         var parent = new OB.OBMol();
 
         conv.setInFormat('', 'smi');
-        conv.readString(frag, fragmentSMILES);
+        conv.readString(frag, smi);
 
         conv.setInFormat('', 'pdb');
         conv.readString(parent, ligandPDB);
@@ -107,6 +136,21 @@ function loadFused(ligandPDB: string, fragmentSMILES: string, center: number[]):
             }
         }
 
+        if (optimizeFragGeometry) {
+            // Minimize geometry of fragment a bit. This also adds hydrogens.
+            frag.GetAtom(1).SetAtomicNum(1);
+
+            var gen = new OB.OB3DGenWrapper();
+            var loopCount = 1;
+            for (var i = 0; i < loopCount; ++i) {
+                gen.generate3DStructure(frag, "MMFF94");
+            }
+            frag.GetAtom(1).SetAtomicNum(0);
+        } else {
+            // No geometry optimization, but still add hydrogens to fragment.
+            frag.AddHydrogensWithParam(false, true, 7.4);
+        }
+
         // Attach the fragment to the parent.
         fuseMol(parent, frag, parent_atom_idx, frag_atom_idx);
 
@@ -117,12 +161,12 @@ function loadFused(ligandPDB: string, fragmentSMILES: string, center: number[]):
 /**
  * Generate a 2D embedding of a ligandPDB and fragment as a SMILES string
  * @param  {string} ligandPDB           The ligand PDB string.
- * @param  {string} fragmentSMILES      SMILES string of the fragment.
+ * @param  {string} smi      SMILES string of the fragment.
  * @param  {Array<number>} center       The location of the growing point.
  * @returns Promise  A promise that resolves with a SMILES string of the full ligand..
  */
- export function makeSMILES(ligandPDB: string, fragmentSMILES: string, center: number[]): Promise<string> {
-    return loadFused(ligandPDB, fragmentSMILES, center).then((mol) => {
+ export function makeSMILES(ligandPDB: string, smi: string, center: number[]): Promise<string> {
+    return loadFused(ligandPDB, smi, center, false).then((mol) => {
         var conv = new OB.ObConversionWrapper()
         conv.setOutFormat('', 'smi');
 
@@ -133,13 +177,13 @@ function loadFused(ligandPDB: string, fragmentSMILES: string, center: number[]):
 /**
  * Generate a 3D embedding of a ligandPDB and fragment.
  * @param  {string} ligandPDB           The ligand PDB string.
- * @param  {string} fragmentSMILES      SMILES string of the fragment.
+ * @param  {string} smi      SMILES string of the fragment.
  * @param  {Array<number>} center       The location of the growing point.
  * @param  {string} format              The output file format (e.g. "sdf", "pdb", ...)
  * @returns Promise  A promise that resolves with a string of the requested format..
  */
-export function make3D(ligandPDB: string, fragmentSMILES: string, center: number[], format: string): Promise<string> {
-    return loadFused(ligandPDB, fragmentSMILES, center).then((mol) => {
+export function make3D(ligandPDB: string, smi: string, center: number[], format: string): Promise<string> {
+    return loadFused(ligandPDB, smi, center, true).then((mol) => {
         var gen3d = OB.OBOp.FindType('Gen3D');
         gen3d.Do(mol, '');
 
