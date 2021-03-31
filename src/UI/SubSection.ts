@@ -29,7 +29,7 @@ export function setup(): void {
             return {}
         },
         "computed": {},
-        "template": `
+        "template": /* html */`
             <b-card :title="title" class="mb-4">
                 <b-card-text style="margin-top: 16px;">
                     <slot></slot>

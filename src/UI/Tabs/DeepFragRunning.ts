@@ -16,11 +16,11 @@
 declare var Vue;
 
 /**
- * Setup the vina-running Vue commponent.
+ * Setup the deepfrag-running Vue commponent.
  * @returns void
  */
 export function setup(): void {
-    Vue.component('vina-running', {
+    Vue.component('deepfrag-running', {
         "template": `
             <div class="text-center">
                 <b-spinner style="width: 4rem; height: 4rem;" label="Working"></b-spinner>

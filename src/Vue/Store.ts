@@ -65,7 +65,7 @@ export const store = new Vuex.Store({
             "center_y": false,
             "center_z": false
         },
-        hideDockingBoxParams: false,
+        // hideDockingBoxParams: false,
         "tabIdx": 0,
         "ligandFileName": "",
         "ligandContents": "",
@@ -91,7 +91,7 @@ export const store = new Vuex.Store({
         "selectedAtomClickAction": "select",
         "showFileInputs": true,
         "isExampleData": false,
-        "numPseudoRotations": 4,
+        "numPseudoRotations": 32,
         "waitingMsg": ""
     },
     "mutations": {
@@ -108,10 +108,10 @@ export const store = new Vuex.Store({
         },
 
         /**
-         * Set one of the vina parameters.
+         * Set one of the deepfrag parameters.
          * @param  {*}          state    The VueX state.
          * @param  {iVueXParam} payload  An object with information about
-         *                               which vina parameter to set.
+         *                               which deepfrag parameter to set.
          * @returns void
          */
         "setDeepFragParam"(state: any, payload: iVueXParam): void {

@@ -13,6 +13,10 @@ Changes
 * Added the Fuser web app, which can add a molecular fragment (SMILES) to a
   small molecule (PDB). This web app is entirely separate from DeepFrag. It is
   separately licensed under the GPLv2 license.
+* Closure compiling less aggressive to avoid errors.
+* Improved rotation augmentation code for efficiency. Now defaults to 32
+  rotations, as in original DeepFrag paper.
+
 
 1.0.0
 -----

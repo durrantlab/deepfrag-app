@@ -39,7 +39,7 @@ let computedFunctions = {
                 "SMILES": dataItem[0],
                 "Structure": `<canvas style="width:${CANVAS_WIDTH + 2 * CANVAS_PADDING}px;height:${CANVAS_HEIGHT + 2 * CANVAS_PADDING}px;" data-smiles="${smilesForVis}"></canvas>`,
                 "Score": dataItem[1].toFixed(3),
-                "Download": [i, dataItem[0]]
+                // "Download": [i, dataItem[0]]
             });
         }
         return items;
@@ -61,6 +61,22 @@ let methodsFunctions = {
             "padding": CANVAS_PADDING,
             "compactDrawing": false
         });
+    },
+
+    /**
+     * Opens the optional fuser web app.
+     * @returns void
+     */
+    "downloadMolecule"(fragSMILES: string): void {
+        let ligandPDB = this.$store.state["ligandPdbTxtFrom3DMol"];
+        let center = this.$store.state["growingPointJSON"];
+
+        import("lz-string").then((LZString) => {
+            // let ligandPDBCompressed = LZString.compress(ligandPDB);
+            let ligandPDBCompressed = LZString.compressToEncodedURIComponent(ligandPDB);
+            let url = `fuser-app/index.html?pdb=${ligandPDBCompressed}&smi=${encodeURIComponent(fragSMILES)}&x=${encodeURIComponent(center[0].toString())}&y=${encodeURIComponent(center[1].toString())}&z=${encodeURIComponent(center[2].toString())}`
+            window.open(url);
+        });
     }
 }
 
@@ -81,7 +97,7 @@ export function setup(): void {
                     {"key": "SMILES", "class": ["results-table-col"], "thClass": "no-text-wrap"},
                     {"key": "Structure", "class": ["results-table-col", "center-table-text"], "thClass": "hidden-mobile"},
                     {"key": "Score", "class": ["results-table-col", "center-table-text"], "thClass": "no-text-wrap"},
-                    {"key": "Download", "class": ["results-table-col", "center-table-text"], "thClass": "no-text-wrap"}
+                    // {"key": "Download", "class": ["results-table-col", "center-table-text"], "thClass": "no-text-wrap"}
                 ]
             }
         },
@@ -110,12 +126,16 @@ export function setup(): void {
                     <span v-html="data.value"></span>
                 </div>
             </template>
-            <template #head(Download)="data">
+            <template #cell(SMILES)="data">
+                <a href="#" title="Generate complete model..." @click.prevent="downloadMolecule(data.value)">{{data.value}}</a>
+            </template>
+
+            <!-- <template #head(Download)="data">
                 <b>Download</b>
             </template>
             <template #cell(Download)="data">
                 <embed-frag :index="data.value[0]" :fragment="data.value[1]"></embed-frag>
-            </template>
+            </template> -->
         </b-table>
         `,
 

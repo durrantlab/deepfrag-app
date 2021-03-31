@@ -29,7 +29,7 @@ export function setup(): void {
     new Vue({
         "el": '#app',
         "store": Store.store,
-        "template": `
+        "template": /* html */ `
             <div class="container-fluid">
                 <open-modal></open-modal>
                 <convert-file-modal></convert-file-modal>
@@ -49,17 +49,17 @@ export function setup(): void {
                     <b-tabs v-model="tabIdx" card fill pills vertical content-class="mt-3">
                         <b-tab title="Input Parameters" active :disabled="parametersTabDisabled">
                             <b-card-text>
-                                <vina-params></vina-params>
+                                <deepfrag-params></deepfrag-params>
                             </b-card-text>
                         </b-tab>
                         <b-tab title="Running DeepFrag" :disabled="runningTabDisabled">
                             <b-card-text>
-                                <vina-running></vina-running>
+                                <deepfrag-running></deepfrag-running>
                             </b-card-text>
                         </b-tab>
                         <b-tab title="Output" :disabled="outputTabDisabled">
                             <b-card-text>
-                                <vina-output></vina-output>
+                                <deepfrag-output></deepfrag-output>
                             </b-card-text>
                         </b-tab>
                         <b-tab title="Start Over" :disabled="startOverTabDisabled">

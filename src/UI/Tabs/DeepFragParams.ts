@@ -24,9 +24,9 @@ let computedFunctions = {
      * Whether to hide the vina docking-box parameters.
      * @returns boolean  True if they should be hidden, false otherwise.
      */
-    "hideDockingBoxParams"(): boolean {
-        return this.$store.state.hideDockingBoxParams;
-    },
+    // "hideDockingBoxParams"(): boolean {
+    //     return this.$store.state.hideDockingBoxParams;
+    // },
 
     /** Whether to show the keep-protein-only link. Has both a getter and a setter. */
     "showKeepProteinOnlyLink": {
@@ -180,20 +180,20 @@ let computedFunctions = {
      * users to not use too many rotations.
      * @returns string
      */
-    "manyRotsWarningStyle"(): string {
-        let ratio = (this["numPseudoRotations"] - 4) / 28.0;
-        if (ratio < 0) { ratio = 0; }
-        let color: number[] = [];
-        if (ratio <= 0.5) {
-            let ratio2 = ratio / 0.5;
-            color = this.betweenColors([55, 58, 60], [175, 175, 0], ratio2);
-        } else {
-            let ratio2 = (ratio - 0.5) / 0.5;
-            color = this.betweenColors([175, 175, 0], [255, 0, 0], ratio2);
-        }
-        // console.log(ratio);
-        return `color:rgb(${color[0]}, ${color[1]}, ${color[2]}); ${ratio > 0.25 ? "font-weight:bold;" : ""}`;
-    }
+    // "manyRotsWarningStyle"(): string {
+    //     let ratio = (this["numPseudoRotations"] - 4) / 28.0;
+    //     if (ratio < 0) { ratio = 0; }
+    //     let color: number[] = [];
+    //     if (ratio <= 0.5) {
+    //         let ratio2 = ratio / 0.5;
+    //         color = this.betweenColors([55, 58, 60], [175, 175, 0], ratio2);
+    //     } else {
+    //         let ratio2 = (ratio - 0.5) / 0.5;
+    //         color = this.betweenColors([175, 175, 0], [255, 0, 0], ratio2);
+    //     }
+    //     // console.log(ratio);
+    //     return `color:rgb(${color[0]}, ${color[1]}, ${color[2]}); ${ratio > 0.25 ? "font-weight:bold;" : ""}`;
+    // }
 }
 
 /** An object containing the vue-component methods functions. */
@@ -460,12 +460,12 @@ function mountedFunction(): void {
 }
 
 /**
- * Setup the vina-params Vue commponent.
+ * Setup the deepfrag-params Vue commponent.
  * @returns void
  */
 export function setup(): void {
-    Vue.component('vina-params', {
-        "template": `
+    Vue.component('deepfrag-params', {
+        "template": /* html */ `
             <div>
                 <b-form v-if="webAssemblyAvailable">
                     <sub-section
@@ -550,8 +550,8 @@ export function setup(): void {
                     >
                         <label for="numPseudoRotationsRange">
                             Rotating/reflecting molecules to generate multiple
-                            predictions improves accuracy but requires more computer
-                            memory. <span :style="manyRotsWarningStyle">Large values may crash the app.</a>
+                            predictions improves accuracy but takes longer.
+                            <!-- <span :style="manyRotsWarningStyle">Large values may crash the app.</a> -->
                         </label>
                         <b-form-input id="numPseudoRotationsRange" v-model="numPseudoRotations" type="range" min="1" max="32"></b-form-input>
                         <div style="text-align:center;margin-top:-10px;"><small>

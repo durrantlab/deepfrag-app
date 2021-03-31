@@ -104,6 +104,52 @@ function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: an
     }
 }
 
+function runInfereneBatch(tensorGen: any, model: any, numRotDone: number, numRotTotal: number): Promise<any> {
+    const preds = tf.tidy(() => {
+        // Get some tensors
+        let tensorsBatch = tensorGen.next();
+        let tensors = tensorsBatch.value;
+
+        // If there are none left, return null.
+        if ((tensorGen.done === true) || (tensors === undefined)) {
+            return [null, numRotDone];
+        }
+
+        numRotDone += tensors.length;
+
+        var fullTensor = tf.concat(tensors);
+        try {
+            // throw 'test error';
+            return [model["predict"](fullTensor), numRotDone];  // error
+        } catch(err) {
+            let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
+            let numRots = Store.store.state["numPseudoRotations"];
+            msg += (numRots > 1)
+                ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
+                : "You may need to use a more powerful computer."
+            Store.store.commit("openModal", {
+                title: "Error Predicting Fragments!",
+                body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
+            });
+            return [null, numRotDone];
+        }
+    });
+
+    return new Promise((resolve, reject) => {
+        // console.log(numRotDone, numRotTotal)
+        let percentDone = 100 * numRotDone / numRotTotal;
+        Store.store.commit("setVar", {
+            name: "waitingMsg",
+            val: `Running DeepFrag in your browser (${percentDone.toFixed(0)}%)...`
+        });
+
+        setTimeout(() => {
+            // To allow DOM to redraw.
+            resolve(preds);
+        }, 100);
+    });
+}
+
 /**
  * Runs inference and gets the scores.
  * @param  {*} model         The model.
@@ -111,71 +157,68 @@ function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: an
  * @param  {*} smiles        The smiles strings.
  * @param  {*} fingerprints  The fingerprints.
  * @param  {number} numPseudoRotations  The number of grid rotations.
- * @returns any[]  The scores.
+ * @returns Promise          A promise that resolves the scores.
  */
-function runInference(model: any, grid: any, smiles: any, fingerprints: any, numPseudoRotations: number): any[] {
+function runInference(model: any, grid: any, smiles: any, fingerprints: any, numPseudoRotations: number): Promise<any[]> {
+    // generate grid transpositions
+    const REVERSE = [
+        [],
+        [1],
+        [2],
+        [3],
+
+        // Note: a tensor of size 48x9x24x24x24 seems to be too big for the
+        // WebGL context. Using only 24 transpositions should give similar
+        // accuracy and allow for smaller tensors.
+
+        // Uncomment the following to use all 48 cube transpositions:
+        [1,2],
+        [1,3],
+        [2,3],
+        [1,2,3]
+    ];
+
+    const TRANSPOSE = [
+        [0,1,2,3],
+        [0,1,3,2],
+        [0,2,1,3],
+        [0,2,3,1],
+        [0,3,1,2],
+        [0,3,2,1],
+    ];
+
     // Run tf ops inside tf.tidy to automatically clean up intermediate tensors.
-    const scores = tf.tidy(() => {
+    const tensor = tf.tidy(() => {
         // build tensor from flattened grid
-        var tensor = tf.tensor(grid, [
+        return tf.tensor(grid, [
             GRID_CHANNELS,
             GRID_WIDTH,
             GRID_WIDTH,
             GRID_WIDTH,
         ]);
+    });
 
-        // generate grid transpositions
-        const REVERSE = [
-            [],
-            [1],
-            [2],
-            [3],
+    // Generate the predictions
+    const tensorGen = tensorGenerator(REVERSE, TRANSPOSE, tensor, numPseudoRotations);
+    let preds = [];
+    let numRotDone = 0;
 
-            // Note: a tensor of size 48x9x24x24x24 seems to be too big for the
-            // WebGL context. Using only 24 transpositions should give similar
-            // accuracy and allow for smaller tensors.
+    let getPreds = function(): Promise<any> {
+        return runInfereneBatch(tensorGen, model, numRotDone, numPseudoRotations).then((payload) => {
+            let predsBatch = payload[0];
+            numRotDone = payload[1];
 
-            // Uncomment the following to use all 48 cube transpositions:
-            [1,2],
-            [1,3],
-            [2,3],
-            [1,2,3]
-        ];
-
-        const TRANSPOSE = [
-            [0,1,2,3],
-            [0,1,3,2],
-            [0,2,1,3],
-            [0,2,3,1],
-            [0,3,1,2],
-            [0,3,2,1],
-        ];
-
-        const tensorGen = tensorGenerator(REVERSE, TRANSPOSE, tensor, numPseudoRotations);
-        let preds = [];
-        let tensorsBatch = tensorGen.next();
-        while (tensorsBatch.done === false) {
-            let tensors = tensorsBatch.value;
-            var full_tensor = tf.concat(tensors);
-            try {
-                // throw 'test error';
-                preds.push(model["predict"](full_tensor));  // error
-            } catch(err) {
-                let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
-                let numRots = Store.store.state["numPseudoRotations"];
-                msg += (numRots > 1)
-                    ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
-                    : "You may need to use a more powerful computer."
-                Store.store.commit("openModal", {
-                    title: "Error Predicting Fragments!",
-                    body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
-                });
-                return [];
+            if (predsBatch === null) {
+                // No more left.
+                return Promise.resolve(preds);
+            } else {
+                preds.push(predsBatch);
+                return getPreds();
             }
+        });
+    }
 
-            tensorsBatch = tensorGen.next();
-        }
-
+    return getPreds().then((preds) => {
         let allPreds = tf.concat(preds);
 
         var avg_pred = tf.mean(allPreds, [0]);
@@ -199,10 +242,67 @@ function runInference(model: any, grid: any, smiles: any, fingerprints: any, num
         // sort predictions
         scores.sort((a, b) => b[1] - a[1]);
 
-        return scores;
+        return Promise.resolve(scores);
     });
 
-    return scores;
+    // return new Promise((resolve, reject) => {
+    //     setTimeout(() => {
+    //         resolve([]);
+    //     }, 10000000)
+    // });
+
+    // const scores = tf.tidy(() => {
+    //     let preds = [];
+    //     let tensorsBatch = tensorGen.next();
+    //     while (tensorsBatch.done === false) {
+    //         let tensors = tensorsBatch.value;
+    //         var fullTensor = tf.concat(tensors);
+    //         try {
+    //             // throw 'test error';
+    //             preds.push(model["predict"](fullTensor));  // error
+    //         } catch(err) {
+    //             let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
+    //             let numRots = Store.store.state["numPseudoRotations"];
+    //             msg += (numRots > 1)
+    //                 ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
+    //                 : "You may need to use a more powerful computer."
+    //             Store.store.commit("openModal", {
+    //                 title: "Error Predicting Fragments!",
+    //                 body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
+    //             });
+    //             return [];
+    //         }
+
+    //         tensorsBatch = tensorGen.next();
+    //     }
+
+    //     let allPreds = tf.concat(preds);
+
+    //     var avg_pred = tf.mean(allPreds, [0]);
+
+    //     var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
+
+    //     // cosine similarity
+    //     // (a dot b) / (|a| * |b|)
+    //     var dot = tf.sum(tf.mul(fingerprints, pred_b), 1);
+    //     var n1 = tf.norm(fingerprints, 2, 1);
+    //     var n2 = tf.norm(pred_b, 2, 1);
+    //     var d = tf.maximum(tf.mul(n1, n2), 1e-6);
+    //     var dist = tf.div(dot, d).arraySync();
+
+    //     // join smiles with distance
+    //     var scores = [];
+    //     for (var i = 0; i < smiles.length; ++i) {
+    //         scores.push([smiles[i], dist[i]]);
+    //     }
+
+    //     // sort predictions
+    //     scores.sort((a, b) => b[1] - a[1]);
+
+    // //     return scores;
+    // });
+
+    // return Promise.resolve(scores);
 }
 
 /**
@@ -298,7 +398,7 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
             Store.store.commit("setVar", {
                 name: "waitingMsg",
                 val: "Running DeepFrag in your browser..."
-            })
+            });
 
             Vue.nextTick(() => {
                 setTimeout(() => {
@@ -307,66 +407,64 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
             });
         });
     }).then((vals) => {
-        let scores;
+        // let scores;
 
         // To debug.
         // scores = [["*CC",0.8856948018074036],["*C",0.8234878182411194],["*CCC",0.8039824366569519],["*C(C)C",0.7618820071220398],["*CCCC",0.7330074906349182]];
 
-        if (true) {  // for debugging. put in false to use above dummy scores.
-            const fp = vals[0];
-            const model = vals[1];
-            const DeepFragMakeGrid = vals[2];
+        const fp = vals[0];
+        const model = vals[1];
+        const DeepFragMakeGrid = vals[2];
 
-            // Aggregate the fragment fingerprints into a single tensor for
-            // vector math.
-            var smiles = Object.keys(fp);
-            var fpdat = [];
-            for (var k = 0; k < smiles.length; k++) {
-                fpdat.push(fp[smiles[k]]);
-            }
-            var fingerprints = tf.tensor(fpdat);
+        // Aggregate the fragment fingerprints into a single tensor for
+        // vector math.
+        var smiles = Object.keys(fp);
+        var fpdat = [];
+        for (var k = 0; k < smiles.length; k++) {
+            fpdat.push(fp[smiles[k]]);
+        }
+        var fingerprints = tf.tensor(fpdat);
 
-            // Get data required to prepare for grid generation.
-            // rec_coords, rec_layers, parent_coords, parent_layers, conn
-            let preGridGenData = DeepFragMakeGrid.pre_grid_gen(
-                receptorPdb, ligandPdb, center
+        // Get data required to prepare for grid generation.
+        // rec_coords, rec_layers, parent_coords, parent_layers, conn
+        let preGridGenData = DeepFragMakeGrid.pre_grid_gen(
+            receptorPdb, ligandPdb, center
+        );
+
+        // Rotate the receptor and ligand about the connection point.
+        var rot = randomRotation();
+        preGridGenData[0] = quaternionRotation(preGridGenData[0], rot, center); // receptor
+        preGridGenData[2] = quaternionRotation(preGridGenData[2], rot, center); // parent
+
+        // Generate the grids for each channel.
+        let grids = [];
+        for (let i = 0; i < 9; i++) {
+            grids.push(
+                DeepFragMakeGrid.make_grid_given_channel(
+                    preGridGenData[0], preGridGenData[1],
+                    preGridGenData[2], preGridGenData[3],
+                    preGridGenData[4], i
+                )
             );
+        }
 
-            // Rotate the receptor and ligand about the connection point.
-            var rot = randomRotation();
-            preGridGenData[0] = quaternionRotation(preGridGenData[0], rot, center); // receptor
-            preGridGenData[2] = quaternionRotation(preGridGenData[2], rot, center); // parent
+        // Merge all the channels into one.
+        let grid = DeepFragMakeGrid.sum_channel_grids(grids);
 
-            // Generate the grids for each channel.
-            let grids = [];
-            for (let i = 0; i < 9; i++) {
-                grids.push(
-                    DeepFragMakeGrid.make_grid_given_channel(
-                        preGridGenData[0], preGridGenData[1],
-                        preGridGenData[2], preGridGenData[3],
-                        preGridGenData[4], i
-                    )
-                );
+        // Run inference. Scores is an array of arrays, [SMILES,
+        // score], ordered from best score to worst.
+        return runInference(model, grid, smiles, fingerprints, numPseudoRotations).then((scores) => {
+            // Get values as csv
+            let scoresCSV = "Rank,Fragment SMILES,Score\n";
+            for (var j = 0; j < scores.length; ++j) {
+                scoresCSV += (j + 1).toString() + "," + scores[j][0] + "," + scores[j][1].toString() + "\n";
             }
 
-            // Merge all the channels into one.
-            let grid = DeepFragMakeGrid.sum_channel_grids(grids);
-
-            // Run inference. Scores is an array of arrays, [SMILES,
-            // score], ordered from best score to worst.
-            scores = runInference(model, grid, smiles, fingerprints, numPseudoRotations);
-        }
-
-        // Get values as csv
-        let scoresCSV = "Rank,Fragment SMILES,Score\n";
-        for (var j = 0; j < scores.length; ++j) {
-            scoresCSV += (j + 1).toString() + "," + scores[j][0] + "," + scores[j][1].toString() + "\n";
-        }
-
-        // Load smiles drawer to display the files.
-        return smilesDrawerPromise.then(() => {
-            // Now ready to go.
-            return Promise.resolve([scores, scoresCSV]);
+            // Load smiles drawer to display the files.
+            return smilesDrawerPromise.then(() => {
+                // Now ready to go.
+                return Promise.resolve([scores, scoresCSV]);
+            });
         });
     });
 }

@@ -134,11 +134,11 @@ let methodsFunctions = {
 }
 
 /**
- * Setup the vina-output Vue commponent.
+ * Setup the deepfrag-output Vue commponent.
  * @returns void
  */
 export function setup(): void {
-    Vue.component('vina-output', {
+    Vue.component('deepfrag-output', {
         "template": `
             <div>
                 <sub-section title="Visualization">

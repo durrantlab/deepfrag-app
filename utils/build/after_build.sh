@@ -15,10 +15,11 @@ grep -l "$3Dmol.notrack" *.js | awk '{print "cat " $1 " | sed \"s|\\$3Dmol.notra
 cd -
 
 # You need to closure compile vendor..js too. Let's use js version for maximal
-# compatibility.
+# compatibility. (Note: Now compiling all javascript with closure after
+# webpack compile).
 echo "Check for errors above. Enter to start compiling vendor js and other js files..."
 cd dist
-ls vendors*js runtime*js styles*js | awk '{print "echo Compiling " $1 ";node ../node_modules/google-closure-compiler/cli.js " $1 " > t; mv t " $1}' | bash
+ls app*.js vendors*.js runtime*.js styles*.js | awk '{print "echo Compiling " $1 ";node ../node_modules/google-closure-compiler/cli.js " $1 " > t; mv t " $1}' | bash
 cd -
 
 # If there is a .min.js file, delete any associated .js file.
@@ -46,13 +47,22 @@ ls app.*js | awk '{print "cat t > " $1 ".tmp; cat " $1 " >> " $1 ".tmp; mv " $1 
 rm t
 cd -
 
+# Remove some stray files from the build.
+cd dist
+find . -type d -name "old" -exec rm -rf '{}' \;
+find . -type d -name "gridder_python_src" -exec rm -rf '{}' \;
+find . -type d -name "src" -exec rm -rf '{}' \;
+find . -type f -name "*.ts" -exec rm '{}' \;
+find . -type f -name "*.sh" -exec rm '{}' \;
+cd -
+
 # Also create a ZIP file of the dist directory, for convenient distribution.
 mv dist deepfrag-app
 zip -r deepfrag-app.zip deepfrag-app
 mv deepfrag-app dist
 
 # Build the docs while you're at it.
-. utils/build/make_docs.sh
+# . utils/build/make_docs.sh
 
 # Let the user know that compilation is finished. Works only on macOS.
 say "Beep"

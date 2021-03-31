@@ -5,6 +5,7 @@ const notWebworker = require('./webpack.not-webworker.js');
 const path = require('path');
 const ClosurePlugin = require('closure-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 let forProd = {
     mode: 'production',
@@ -12,23 +13,29 @@ let forProd = {
         new webpack.optimize.ModuleConcatenationPlugin()
     ],
     optimization: {
+        // minimize: false,
         // sideEffects: false,
         // concatenateModules: false,
         minimizer: [
             new OptimizeCSSAssetsPlugin({}),
-            new ClosurePlugin({
-                mode: 'STANDARD', // 'AGGRESSIVE_BUNDLE', // 'STANDARD',
-                platform: "java",
-                test: /^(?!DeepFragMakeGrid).+/
-            }, {
-                // debug: true,
-                // renaming: false
-                externs: [
-                    path.resolve(__dirname, '../closure/custom_extern.js')
-                ],
-                compilation_level: 'ADVANCED',
-                // formatting: 'PRETTY_PRINT',
-            })
+            new TerserPlugin({
+                parallel: true,
+                sourceMap: false, // Must be set to true if using source-maps in production
+                terserOptions: {},
+            }),
+            // new ClosurePlugin({
+            //     mode: 'STANDARD', // 'AGGRESSIVE_BUNDLE', // 'STANDARD',
+            //     platform: "java",
+            //     test: /^(?!DeepFragMakeGrid).+/
+            // }, {
+            //     // debug: true,
+            //     // renaming: false
+            //     externs: [
+            //         path.resolve(__dirname, '../closure/custom_extern.js')
+            //     ],
+            //     compilation_level: 'ADVANCED',
+            //     // formatting: 'PRETTY_PRINT',
+            // })
         ],
         splitChunks: {
             chunks: 'async',
@@ -75,7 +82,7 @@ let forProd = {
         //     },
         // },
     }
-}
+};
 
 // let webworkerFinal = merge(webworker, forProd);
 let nonWebworkerFinal = merge(notWebworker, forProd);
