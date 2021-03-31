@@ -51,8 +51,8 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
                         to an existing small molecule (PDB). Click the buttons
                         below to download the molecule + fragment (fused)
                         compound in your preferred format. <a
-                        href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1"
-                        target="_blank">GPLv2 licensed.</a>
+                           href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1"
+                           target="_blank">GPLv2 licensed.</a>
                     </p>
                 </div>
             </div>
@@ -70,7 +70,8 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="pdb">Ligand PDB Contents</label>
-                        <textarea class="form-control" id="pdb" rows="3" style="white-space:pre; font-family:monospace;"></textarea>
+                        <textarea class="form-control" id="pdb" rows="3"
+                                  style="white-space:pre; font-family:monospace;"></textarea>
                         <p class="help-block">
                             Paste the text of your PDB file here.
                         </p>
@@ -123,22 +124,33 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
                         </p>
                     </div>
                 </div>
+
+                <div class="col-md-4" style="margin-left:20px;">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" style="position:relative; top:1px;" id="extraOptimization">
+                        <label class="form-check-label" style="padding-left:4px;" for="extraOptimization">Optimize atomic coordinates</label>
+                    </div>
+                </div>
             </div>
 
             <!-- <hr class="mb-4 mt-1" /> -->
 
-            <button type="submit" id="downloadSMILESBtn" class="btn btn-primary">
+            <button type="submit" id="downloadSMILESBtn" class="btn btn-primary mb-1">
                 Download SMILES
             </button>
-            <button type="submit" id="downloadSDFBtn" class="btn btn-primary">
+            <button type="submit" id="downloadSDFBtn" class="btn btn-primary mb-1">
                 Download SDF
             </button>
-            <button type="submit" id="downloadPDBBtn" class="btn btn-primary">
+            <button type="submit" id="downloadPDBBtn" class="btn btn-primary mb-1">
                 Download PDB
             </button>
         </div>
 
         <script src="external/jquery.min.js"></script>
+
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script> -->
+        <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+
         <script src="openbabel/openbabel.js"></script>
         <script src="external/lz-string.min.js"></script>
         <script data-main="js/App" src="external/require.min.js"></script>

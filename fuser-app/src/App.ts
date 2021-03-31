@@ -124,6 +124,7 @@ $("#downloadSDFBtn").on(
      */
      function (): void {
         let Fuser;
+        let extraOptim = $("#extraOptimization").prop("checked");
         waitButton("downloadSDFBtn", true).then(() => {
             return import("./Fuser");
         }).then((fuser) => {
@@ -133,7 +134,7 @@ $("#downloadSDFBtn").on(
             let vals = getVarVals();
             let pdb = vals["pdb"];
             let center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
-            return Fuser.make3D(pdb, vals["smi"], center, 'sdf');
+            return Fuser.make3D(pdb, vals["smi"], center, 'sdf', extraOptim);
         }).then((sdf) => {
             var blob = new Blob([sdf + '\n'], {type: "text/plain;charset=utf-8"});
             saveAsWrapper(blob, "fused.sdf");
@@ -151,6 +152,7 @@ $("#downloadPDBBtn").on(
      */
     function (): void {
         let Fuser;
+        let extraOptim = $("#extraOptimization").prop("checked");
         waitButton("downloadPDBBtn", true).then(() => {
             return import("./Fuser");
         }).then((fuser) => {
@@ -160,7 +162,7 @@ $("#downloadPDBBtn").on(
             let vals = getVarVals();
             let pdb = vals["pdb"];
             let center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
-            return Fuser.make3D(pdb, vals["smi"], center, 'pdb');
+            return Fuser.make3D(pdb, vals["smi"], center, 'pdb', extraOptim);
         }).then((pdb) => {
             var blob = new Blob([pdb + '\n'], {type: "text/plain;charset=utf-8"});
             saveAsWrapper(blob, "fused.pdb");

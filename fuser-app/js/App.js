@@ -121,20 +121,8 @@ define("Fuser", ["require", "exports"], function (require, exports) {
                     break;
                 }
             }
-            if (optimizeFragGeometry) {
-                // Minimize geometry of fragment a bit. This also adds hydrogens.
-                frag.GetAtom(1).SetAtomicNum(1);
-                var gen = new OB.OB3DGenWrapper();
-                var loopCount = 1;
-                for (var i = 0; i < loopCount; ++i) {
-                    gen.generate3DStructure(frag, "MMFF94");
-                }
-                frag.GetAtom(1).SetAtomicNum(0);
-            }
-            else {
-                // No geometry optimization, but still add hydrogens to fragment.
-                frag.AddHydrogensWithParam(false, true, 7.4);
-            }
+            // Add hydrogen atoms to fragment.
+            frag.AddHydrogensWithParam(false, true, 7.4);
             // Attach the fragment to the parent.
             fuseMol(parent, frag, parent_atom_idx, frag_atom_idx);
             resolve(parent);
@@ -158,15 +146,29 @@ define("Fuser", ["require", "exports"], function (require, exports) {
     /**
      * Generate a 3D embedding of a ligandPDB and fragment.
      * @param  {string} ligandPDB           The ligand PDB string.
-     * @param  {string} smi      SMILES string of the fragment.
+     * @param  {string} smi                 SMILES string of the fragment.
      * @param  {Array<number>} center       The location of the growing point.
-     * @param  {string} format              The output file format (e.g. "sdf", "pdb", ...)
-     * @returns Promise  A promise that resolves with a string of the requested format..
+     * @param  {string}  format             The output file format (e.g. "sdf",
+     *                                      "pdb", ...)
+     * @param  {boolean} extraOptimization  Whethr to perform extra optimization
+     *                                      on the 3D atomic coordinates.
+     * @returns Promise  A promise that resolves with a string of the requested
+     * format..
      */
-    function make3D(ligandPDB, smi, center, format) {
+    function make3D(ligandPDB, smi, center, format, extraOptimization) {
+        if (extraOptimization === void 0) { extraOptimization = false; }
         return loadFused(ligandPDB, smi, center, true).then(function (mol) {
             var gen3d = OB.OBOp.FindType('Gen3D');
             gen3d.Do(mol, '');
+            mol.AddHydrogensWithParam(false, true, 7.4);
+            if (extraOptimization) {
+                // Minimize geometry a bit. This also adds hydrogens.
+                var gen = new OB.OB3DGenWrapper();
+                var loopCount = 1;
+                for (var i = 0; i < loopCount; ++i) {
+                    gen.generate3DStructure(mol, "MMFF94");
+                }
+            }
             var conv = new OB.ObConversionWrapper();
             conv.setOutFormat('', format);
             return conv.writeString(mol, true);
@@ -247,7 +249,7 @@ define("App", ["require", "exports"], function (require, exports) {
     function () {
         var Fuser;
         waitButton("downloadSMILESBtn", true).then(function () {
-            return new Promise(function (resolve_1, reject_1) { require(["Fuser"], resolve_1, reject_1); });
+            return new Promise(function (resolve_1, reject_1) { require(["./Fuser"], resolve_1, reject_1); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Promise.resolve(Fuser.loadOB());
@@ -268,8 +270,9 @@ define("App", ["require", "exports"], function (require, exports) {
      */
     function () {
         var Fuser;
+        var extraOptim = $("#extraOptimization").prop("checked");
         waitButton("downloadSDFBtn", true).then(function () {
-            return new Promise(function (resolve_2, reject_2) { require(["Fuser"], resolve_2, reject_2); });
+            return new Promise(function (resolve_2, reject_2) { require(["./Fuser"], resolve_2, reject_2); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Fuser.loadOB();
@@ -277,7 +280,7 @@ define("App", ["require", "exports"], function (require, exports) {
             var vals = getVarVals();
             var pdb = vals["pdb"];
             var center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
-            return Fuser.make3D(pdb, vals["smi"], center, 'sdf');
+            return Fuser.make3D(pdb, vals["smi"], center, 'sdf', extraOptim);
         }).then(function (sdf) {
             var blob = new Blob([sdf + '\n'], { type: "text/plain;charset=utf-8" });
             saveAsWrapper(blob, "fused.sdf");
@@ -291,8 +294,9 @@ define("App", ["require", "exports"], function (require, exports) {
      */
     function () {
         var Fuser;
+        var extraOptim = $("#extraOptimization").prop("checked");
         waitButton("downloadPDBBtn", true).then(function () {
-            return new Promise(function (resolve_3, reject_3) { require(["Fuser"], resolve_3, reject_3); });
+            return new Promise(function (resolve_3, reject_3) { require(["./Fuser"], resolve_3, reject_3); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Fuser.loadOB();
@@ -300,7 +304,7 @@ define("App", ["require", "exports"], function (require, exports) {
             var vals = getVarVals();
             var pdb = vals["pdb"];
             var center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
-            return Fuser.make3D(pdb, vals["smi"], center, 'pdb');
+            return Fuser.make3D(pdb, vals["smi"], center, 'pdb', extraOptim);
         }).then(function (pdb) {
             var blob = new Blob([pdb + '\n'], { type: "text/plain;charset=utf-8" });
             saveAsWrapper(blob, "fused.pdb");

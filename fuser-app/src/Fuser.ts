@@ -147,20 +147,8 @@ function loadFused(ligandPDB: string, smi: string, center: number[], optimizeFra
             }
         }
 
-        if (optimizeFragGeometry) {
-            // Minimize geometry of fragment a bit. This also adds hydrogens.
-            frag.GetAtom(1).SetAtomicNum(1);
-
-            var gen = new OB.OB3DGenWrapper();
-            var loopCount = 1;
-            for (var i = 0; i < loopCount; ++i) {
-                gen.generate3DStructure(frag, "MMFF94");
-            }
-            frag.GetAtom(1).SetAtomicNum(0);
-        } else {
-            // No geometry optimization, but still add hydrogens to fragment.
-            frag.AddHydrogensWithParam(false, true, 7.4);
-        }
+        // Add hydrogen atoms to fragment.
+        frag.AddHydrogensWithParam(false, true, 7.4);
 
         // Attach the fragment to the parent.
         fuseMol(parent, frag, parent_atom_idx, frag_atom_idx);
@@ -188,15 +176,31 @@ function loadFused(ligandPDB: string, smi: string, center: number[], optimizeFra
 /**
  * Generate a 3D embedding of a ligandPDB and fragment.
  * @param  {string} ligandPDB           The ligand PDB string.
- * @param  {string} smi      SMILES string of the fragment.
+ * @param  {string} smi                 SMILES string of the fragment.
  * @param  {Array<number>} center       The location of the growing point.
- * @param  {string} format              The output file format (e.g. "sdf", "pdb", ...)
- * @returns Promise  A promise that resolves with a string of the requested format..
+ * @param  {string}  format             The output file format (e.g. "sdf",
+ *                                      "pdb", ...)
+ * @param  {boolean} extraOptimization  Whethr to perform extra optimization
+ *                                      on the 3D atomic coordinates.
+ * @returns Promise  A promise that resolves with a string of the requested
+ * format..
  */
-export function make3D(ligandPDB: string, smi: string, center: number[], format: string): Promise<string> {
+export function make3D(ligandPDB: string, smi: string, center: number[], format: string, extraOptimization: boolean = false): Promise<string> {
     return loadFused(ligandPDB, smi, center, true).then((mol) => {
+
         var gen3d = OB.OBOp.FindType('Gen3D');
         gen3d.Do(mol, '');
+
+        mol.AddHydrogensWithParam(false, true, 7.4);
+
+        if (extraOptimization) {
+            // Minimize geometry a bit. This also adds hydrogens.
+            var gen = new OB.OB3DGenWrapper();
+            var loopCount = 1;
+            for (var i = 0; i < loopCount; ++i) {
+                gen.generate3DStructure(mol, "MMFF94");
+            }
+        }
 
         var conv = new OB.ObConversionWrapper()
         conv.setOutFormat('', format);
