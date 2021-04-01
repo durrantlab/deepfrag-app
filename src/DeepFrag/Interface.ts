@@ -20,6 +20,7 @@ declare var Vue;
 const GRID_WIDTH = 24;
 const GRID_CHANNELS = 9;
 const FP_SIZE = 2048;
+const NUM_TENSORS_PER_BATCH = 1;
 
 declare var tf;
 
@@ -82,7 +83,7 @@ function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: an
             ]);
             tensors.push(newTensor);
 
-            if (tensors.length === 4) {
+            if (tensors.length === NUM_TENSORS_PER_BATCH) {
                 yield tensors;
                 tensors = [];
             }
@@ -104,7 +105,7 @@ function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: an
     }
 }
 
-function runInfereneBatch(tensorGen: any, model: any, numRotDone: number, numRotTotal: number): Promise<any> {
+function runInferenceBatch(tensorGen: any, model: any, numRotDone: number, numRotTotal: number): Promise<any> {
     const preds = tf.tidy(() => {
         // Get some tensors
         let tensorsBatch = tensorGen.next();
@@ -203,8 +204,10 @@ function runInference(model: any, grid: any, smiles: any, fingerprints: any, num
     let preds = [];
     let numRotDone = 0;
 
+    console.time('someFunction')
+
     let getPreds = function(): Promise<any> {
-        return runInfereneBatch(tensorGen, model, numRotDone, numPseudoRotations).then((payload) => {
+        return runInferenceBatch(tensorGen, model, numRotDone, numPseudoRotations).then((payload) => {
             let predsBatch = payload[0];
             numRotDone = payload[1];
 
@@ -219,6 +222,8 @@ function runInference(model: any, grid: any, smiles: any, fingerprints: any, num
     }
 
     return getPreds().then((preds) => {
+        console.timeEnd('someFunction')
+
         let allPreds = tf.concat(preds);
 
         var avg_pred = tf.mean(allPreds, [0]);
@@ -244,65 +249,6 @@ function runInference(model: any, grid: any, smiles: any, fingerprints: any, num
 
         return Promise.resolve(scores);
     });
-
-    // return new Promise((resolve, reject) => {
-    //     setTimeout(() => {
-    //         resolve([]);
-    //     }, 10000000)
-    // });
-
-    // const scores = tf.tidy(() => {
-    //     let preds = [];
-    //     let tensorsBatch = tensorGen.next();
-    //     while (tensorsBatch.done === false) {
-    //         let tensors = tensorsBatch.value;
-    //         var fullTensor = tf.concat(tensors);
-    //         try {
-    //             // throw 'test error';
-    //             preds.push(model["predict"](fullTensor));  // error
-    //         } catch(err) {
-    //             let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
-    //             let numRots = Store.store.state["numPseudoRotations"];
-    //             msg += (numRots > 1)
-    //                 ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
-    //                 : "You may need to use a more powerful computer."
-    //             Store.store.commit("openModal", {
-    //                 title: "Error Predicting Fragments!",
-    //                 body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
-    //             });
-    //             return [];
-    //         }
-
-    //         tensorsBatch = tensorGen.next();
-    //     }
-
-    //     let allPreds = tf.concat(preds);
-
-    //     var avg_pred = tf.mean(allPreds, [0]);
-
-    //     var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
-
-    //     // cosine similarity
-    //     // (a dot b) / (|a| * |b|)
-    //     var dot = tf.sum(tf.mul(fingerprints, pred_b), 1);
-    //     var n1 = tf.norm(fingerprints, 2, 1);
-    //     var n2 = tf.norm(pred_b, 2, 1);
-    //     var d = tf.maximum(tf.mul(n1, n2), 1e-6);
-    //     var dist = tf.div(dot, d).arraySync();
-
-    //     // join smiles with distance
-    //     var scores = [];
-    //     for (var i = 0; i < smiles.length; ++i) {
-    //         scores.push([smiles[i], dist[i]]);
-    //     }
-
-    //     // sort predictions
-    //     scores.sort((a, b) => b[1] - a[1]);
-
-    // //     return scores;
-    // });
-
-    // return Promise.resolve(scores);
 }
 
 /**
@@ -407,8 +353,6 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
             });
         });
     }).then((vals) => {
-        // let scores;
-
         // To debug.
         // scores = [["*CC",0.8856948018074036],["*C",0.8234878182411194],["*CCC",0.8039824366569519],["*C(C)C",0.7618820071220398],["*CCCC",0.7330074906349182]];
 
