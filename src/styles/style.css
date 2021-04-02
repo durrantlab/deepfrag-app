@@ -271,7 +271,7 @@ div.col small {
     line-height: 1.15;
 } */
 
-/* #numPseudoRotationsRange small, #input-group-simpRotGroup small {
+/* #numRotationsRange small, #input-group-simpRotGroup small {
     position: relative;
     bottom: 0;
     display: inline-block !important;

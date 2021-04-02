@@ -1,15 +1,20 @@
-# export URL="http://localhost:8082/"
-# export URL="http://0.0.0.0:8000/"
 # export URL="http://localhost:8081/?test"
-export URL="https://durrantlab.pitt.edu/deepfrag?test"
+# export URL="https:/ /durrantlab.pitt.edu/deepfrag?test"
+# export URL="http://localhost:8080/?test"
+export URL="https://durrantlab.pitt.edu/apps/deepfrag/app/beta/?test"
 
 # Combine all the test typescript files
 cat main.template.ts | sed "s|URLURL|${URL}|g"> tmp.ts
 ls tests/ | grep "\.ts" | grep -v "\.old" | awk '{print "cat ./tests/" $1 " | sed \"s/TITLETITLE/" $1 "/g\" | sed \"s|\\.ts\\\"|\\\"|g\" >> tmp.ts; echo \"\" >> tmp.ts"}' | bash
 
+export CHROME="chrome"
+# export CHROME="chrome:headless"
+export FIREFOX="firefox"
+# export FIREFOX="firefox:headless"
+
 # Run the tests
-testcafe chrome tmp.ts --disable-page-caching
-testcafe firefox tmp.ts --disable-page-caching
+testcafe "${CHROME}" -c 4 tmp.ts --disable-page-caching  # --speed 0.25
+testcafe "${FIREFOX}" -c 4 tmp.ts --disable-page-caching
 
 # Clean up
 rm tmp.ts

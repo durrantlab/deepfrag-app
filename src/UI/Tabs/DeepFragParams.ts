@@ -534,10 +534,10 @@ export function setup(): void {
                                     description="Rotating molecules to generate multiple predictions improves accuracy but takes longer."
                                     style="position:relative; top:-21px;">
 
-                                    <label for="numPseudoRotationsRange">
+                                    <label for="numRotationsRange">
                                         <!-- <span :style="manyRotsWarningStyle">Large values may crash the app.</a> -->
                                     </label>
-                                    <b-form-input id="numPseudoRotationsRange" v-model="numRotations" type="range" min="1" max="32"></b-form-input>
+                                    <b-form-input id="numRotationsRange" v-model="numRotations" type="range" min="1" max="32"></b-form-input>
                                     <div style="text-align:center;margin-top:-10px;"><small>
                                         ({{numRotations}}
                                         <span v-if="numRotations > 1">rotations)</span>

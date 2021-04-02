@@ -15,7 +15,8 @@ Changes
   separately licensed under the GPLv2 license.
 * Closure compiling less aggressive to avoid errors.
 * Improved rotation augmentation code for efficiency. Now defaults to 32
-  rotations, as in original DeepFrag paper.
+  rotations, as in original DeepFrag paper. Also added option to apply random
+  rotation at every inference, as in original DeepFrag paper.
 
 
 1.0.0
