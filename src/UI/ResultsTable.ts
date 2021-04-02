@@ -53,14 +53,18 @@ let methodsFunctions = {
      * @returns void
      */
     "updateSMILESDrawerCanvases"(): void {
-        SmilesDrawer.apply({
-            "debug": false,
-            "atomVisualization": 'default',
-            "width": CANVAS_WIDTH,
-            "height": CANVAS_HEIGHT,
-            "padding": CANVAS_PADDING,
-            "compactDrawing": false
-        });
+        try {
+            // In try because when loading saved session, triggers error (not
+            // defined).
+            SmilesDrawer.apply({
+                "debug": false,
+                "atomVisualization": 'default',
+                "width": CANVAS_WIDTH,
+                "height": CANVAS_HEIGHT,
+                "padding": CANVAS_PADDING,
+                "compactDrawing": false
+            });
+        } catch(e) {}
     },
 
     /**

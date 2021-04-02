@@ -20,13 +20,6 @@ declare var Vue;
 
 /** An object containing the vue-component computed functions. */
 let computedFunctions = {
-    /**
-     * Whether to hide the vina docking-box parameters.
-     * @returns boolean  True if they should be hidden, false otherwise.
-     */
-    // "hideDockingBoxParams"(): boolean {
-    //     return this.$store.state.hideDockingBoxParams;
-    // },
 
     /** Whether to show the keep-protein-only link. Has both a getter and a setter. */
     "showKeepProteinOnlyLink": {
@@ -153,47 +146,50 @@ let computedFunctions = {
         return "";
     },
 
-    "numPseudoRotations": {
+    "numRotations": {
         /**
          * Gets the number of rotations for improving accuracy.
          * @returns number
          */
         get(): number {
-            return this.$store.state["numPseudoRotations"];
+            return this.$store.state["numRotations"];
         },
 
         /**
          * Sets the number of rotations for improving accuracy.
-         * @param  {string} val  The numebr of rotations, but as a string.
+         * @param  {string} val  The number of rotations, but as a string.
          * @returns void
          */
         set(val: string): void {
             this.$store.commit("setVar", {
-                name: "numPseudoRotations",
+                name: "numRotations",
                 val: parseInt(val)
             });
         }
     },
 
-    /**
-     * Gets the styles to apply to the warning, with the goal of encouraging
-     * users to not use too many rotations.
-     * @returns string
-     */
-    // "manyRotsWarningStyle"(): string {
-    //     let ratio = (this["numPseudoRotations"] - 4) / 28.0;
-    //     if (ratio < 0) { ratio = 0; }
-    //     let color: number[] = [];
-    //     if (ratio <= 0.5) {
-    //         let ratio2 = ratio / 0.5;
-    //         color = this.betweenColors([55, 58, 60], [175, 175, 0], ratio2);
-    //     } else {
-    //         let ratio2 = (ratio - 0.5) / 0.5;
-    //         color = this.betweenColors([175, 175, 0], [255, 0, 0], ratio2);
-    //     }
-    //     // console.log(ratio);
-    //     return `color:rgb(${color[0]}, ${color[1]}, ${color[2]}); ${ratio > 0.25 ? "font-weight:bold;" : ""}`;
-    // }
+    "reflectAndStepwiseRot": {
+        /**
+         * Gets whether using random rotations or reflections/stepwise
+         * rotations (90 degrees).
+         * @returns boolean
+         */
+         get(): boolean {
+            return this.$store.state["reflectAndStepwiseRot"];
+        },
+
+        /**
+         * Sets whether using random rotations or incremental rotations/reflections.
+         * @param  {boolean} val  Whether to use the simplified scheme.
+         * @returns void
+         */
+        set(val: boolean): void {
+            this.$store.commit("setVar", {
+                name: "reflectAndStepwiseRot",
+                val: val
+            });
+        }
+    }
 }
 
 /** An object containing the vue-component methods functions. */
@@ -289,7 +285,8 @@ let methodsFunctions = {
                             deepFragParams["center_y"],
                             deepFragParams["center_z"],
                         ],
-                        this["numPseudoRotations"]
+                        this["numRotations"],
+                        this["reflectAndStepwiseRot"]
                     ).then((vals: any[]) => {
                         this.$store.commit("setVar", {
                             name: "time",
@@ -431,23 +428,6 @@ let methodsFunctions = {
 
         jQuery("body").removeClass("waiting");
     },
-
-    /**
-     * Interpolates betwewen two colors.
-     * @param  {number[]} color1  The first color, [r, g, b].
-     * @param  {number[]} color2  The second color, [r, g, b].
-     * @param  {number}   ratio   The ratio.
-     * @returns number[]  The interpolated color.
-     */
-    betweenColors(color1: number[], color2: number[], ratio: number): number[] {
-        let result: number[] = [];
-        for (let i = 0; i < 3; i++) {
-            result.push(
-                ratio * (color2[i] - color1[i]) + color1[i]
-            );
-        }
-        return result;
-    }
 }
 
 /**
@@ -542,24 +522,46 @@ export function setup(): void {
 
                     <span style="display:none;">{{validate(false)}}</span>  <!-- Hackish. Just to make reactive. -->
 
-                    <form-group
+                    <b-container
                         v-if="bothReceptorAndLigandSpecified"
-                        label=""
-                        id="rotations-count"
-                        description=""
-                    >
-                        <label for="numPseudoRotationsRange">
-                            Rotating/reflecting molecules to generate multiple
-                            predictions improves accuracy but takes longer.
-                            <!-- <span :style="manyRotsWarningStyle">Large values may crash the app.</a> -->
-                        </label>
-                        <b-form-input id="numPseudoRotationsRange" v-model="numPseudoRotations" type="range" min="1" max="32"></b-form-input>
-                        <div style="text-align:center;margin-top:-10px;"><small>
-                            ({{numPseudoRotations}}
-                            <span v-if="numPseudoRotations > 1">rotations/reflections)</span>
-                            <span v-else="numPseudoRotations > 1">rotation/reflection)</span>
-                        </small></div>
-                    </form-group>
+                        fluid>
+
+                        <b-row>
+                            <b-col sm="6">
+                                <form-group
+                                    label=""
+                                    id="rotations-count"
+                                    description="Rotating molecules to generate multiple predictions improves accuracy but takes longer."
+                                    style="position:relative; top:-21px;">
+
+                                    <label for="numPseudoRotationsRange">
+                                        <!-- <span :style="manyRotsWarningStyle">Large values may crash the app.</a> -->
+                                    </label>
+                                    <b-form-input id="numPseudoRotationsRange" v-model="numRotations" type="range" min="1" max="32"></b-form-input>
+                                    <div style="text-align:center;margin-top:-10px;"><small>
+                                        ({{numRotations}}
+                                        <span v-if="numRotations > 1">rotations)</span>
+                                        <span v-else="numRotations > 1">rotation)</span>
+                                    </small></div>
+                                </form-group>
+                            </b-col>
+                            <b-col sm="6">
+                                <form-group
+                                    label=""
+                                    id="simpRotGroup"
+                                    description="Reflections/stepwise rotations (90&deg;) improve speed but deviate from the original DeepFrag.">
+                                    <b-form-checkbox
+                                        v-model="reflectAndStepwiseRot"
+                                        style="margin-bottom:18px;"
+                                        id="simplifyRotation"
+                                        name="simplifyRotation">
+                                            Reflections/stepwise rotations
+                                    </b-form-checkbox>
+                                </form-group>
+                            </b-col>
+                        </b-form-row>
+                    </b-container>
+
 
                     <form-button id="startDeepFrag" :style="!validate(false) ? 'cursor:not-allowed' : ''" :disabled="!validate(false)" @click.native="onSubmitClick" variant="primary" cls="float-right mb-4 ml-2">Start DeepFrag</form-button>
                     <form-button :style="!isLoadBtnEnabled ? 'cursor:not-allowed' : ''" :disabled="!isLoadBtnEnabled" @click.native="onLoadClick" variant="primary" cls="float-right mb-4 ml-2">Load Saved Data</form-button>

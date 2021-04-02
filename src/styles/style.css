@@ -265,3 +265,18 @@ body.waiting, body.waiting * {
 div.col small {
     line-height: 18px;
 }
+
+/* Descriptions could be a bit more compact */
+/* div.col small {
+    line-height: 1.15;
+} */
+
+/* #numPseudoRotationsRange small, #input-group-simpRotGroup small {
+    position: relative;
+    bottom: 0;
+    display: inline-block !important;
+} */
+
+label[for="simplifyRotation"] {
+    white-space: nowrap;
+}

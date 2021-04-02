@@ -13,15 +13,9 @@
 // under the License.
 
 import * as Store from "../Vue/Store";
+import { runInference } from "./Inference";
 
 declare var Vue;
-
-// fixed parameters
-const GRID_WIDTH = 24;
-const GRID_CHANNELS = 9;
-const FP_SIZE = 2048;
-const NUM_TENSORS_PER_BATCH = 1;
-
 declare var tf;
 
 /**
@@ -60,260 +54,22 @@ function loadModel(): Promise<any> {
 }
 
 /**
- * A generator that provides four tensors at a time.
- * @param  {number[][]} REVERSE             Describes possible reflections.
- * @param  {number[][]} TRANSPOSE           Describes possible transpositions.
- * @param  {any}        tensor              The original tensor to be
- *                                          rotated/reflected.
- * @param  {number}     numPseudoRotations  The number of pseudo rotations.
- */
-function* tensorGenerator(REVERSE: number[][], TRANSPOSE: number[][], tensor: any, numPseudoRotations: number) {
-    // Returns four grids at a time, to avoid using too much memory.
-    var tensors = [];
-    let cnt = 1;
-    for (var ri = 0; ri < REVERSE.length; ++ri) {
-        for (var ti = 0; ti < TRANSPOSE.length; ++ti) {
-            var t = tf.reverse(tensor, REVERSE[ri]).transpose(TRANSPOSE[ti]);
-            let newTensor = t.reshape([
-                1,
-                GRID_CHANNELS,
-                GRID_WIDTH,
-                GRID_WIDTH,
-                GRID_WIDTH
-            ]);
-            tensors.push(newTensor);
-
-            if (tensors.length === NUM_TENSORS_PER_BATCH) {
-                yield tensors;
-                tensors = [];
-            }
-
-            cnt++;
-            if (cnt >= numPseudoRotations) {
-                break;
-            }
-        }
-        if (cnt > numPseudoRotations) {
-            break;
-        }
-    }
-
-    // Could be ones left over if num pseuo rotations not divisible by four.
-    if (tensors.length > 0) {
-        yield tensors;
-        tensors = [];  // no trigger garbage collection?
-    }
-}
-
-function runInferenceBatch(tensorGen: any, model: any, numRotDone: number, numRotTotal: number): Promise<any> {
-    const preds = tf.tidy(() => {
-        // Get some tensors
-        let tensorsBatch = tensorGen.next();
-        let tensors = tensorsBatch.value;
-
-        // If there are none left, return null.
-        if ((tensorGen.done === true) || (tensors === undefined)) {
-            return [null, numRotDone];
-        }
-
-        numRotDone += tensors.length;
-
-        var fullTensor = tf.concat(tensors);
-        try {
-            // throw 'test error';
-            return [model["predict"](fullTensor), numRotDone];  // error
-        } catch(err) {
-            let msg = "An error occured when predicting fragments, most likely due to insufficient memory. ";
-            let numRots = Store.store.state["numPseudoRotations"];
-            msg += (numRots > 1)
-                ? `You might consider reducing the number of grid rotations used for inference (currently ${numRots}).`
-                : "You may need to use a more powerful computer."
-            Store.store.commit("openModal", {
-                title: "Error Predicting Fragments!",
-                body: `<p>${msg}</p><p>Please reload this page and try again.</p>`
-            });
-            return [null, numRotDone];
-        }
-    });
-
-    return new Promise((resolve, reject) => {
-        // console.log(numRotDone, numRotTotal)
-        let percentDone = 100 * numRotDone / numRotTotal;
-        Store.store.commit("setVar", {
-            name: "waitingMsg",
-            val: `Running DeepFrag in your browser (${percentDone.toFixed(0)}%)...`
-        });
-
-        setTimeout(() => {
-            // To allow DOM to redraw.
-            resolve(preds);
-        }, 100);
-    });
-}
-
-/**
- * Runs inference and gets the scores.
- * @param  {*} model         The model.
- * @param  {*} grid          The grid.
- * @param  {*} smiles        The smiles strings.
- * @param  {*} fingerprints  The fingerprints.
- * @param  {number} numPseudoRotations  The number of grid rotations.
- * @returns Promise          A promise that resolves the scores.
- */
-function runInference(model: any, grid: any, smiles: any, fingerprints: any, numPseudoRotations: number): Promise<any[]> {
-    // generate grid transpositions
-    const REVERSE = [
-        [],
-        [1],
-        [2],
-        [3],
-
-        // Note: a tensor of size 48x9x24x24x24 seems to be too big for the
-        // WebGL context. Using only 24 transpositions should give similar
-        // accuracy and allow for smaller tensors.
-
-        // Uncomment the following to use all 48 cube transpositions:
-        [1,2],
-        [1,3],
-        [2,3],
-        [1,2,3]
-    ];
-
-    const TRANSPOSE = [
-        [0,1,2,3],
-        [0,1,3,2],
-        [0,2,1,3],
-        [0,2,3,1],
-        [0,3,1,2],
-        [0,3,2,1],
-    ];
-
-    // Run tf ops inside tf.tidy to automatically clean up intermediate tensors.
-    const tensor = tf.tidy(() => {
-        // build tensor from flattened grid
-        return tf.tensor(grid, [
-            GRID_CHANNELS,
-            GRID_WIDTH,
-            GRID_WIDTH,
-            GRID_WIDTH,
-        ]);
-    });
-
-    // Generate the predictions
-    const tensorGen = tensorGenerator(REVERSE, TRANSPOSE, tensor, numPseudoRotations);
-    let preds = [];
-    let numRotDone = 0;
-
-    console.time('someFunction')
-
-    let getPreds = function(): Promise<any> {
-        return runInferenceBatch(tensorGen, model, numRotDone, numPseudoRotations).then((payload) => {
-            let predsBatch = payload[0];
-            numRotDone = payload[1];
-
-            if (predsBatch === null) {
-                // No more left.
-                return Promise.resolve(preds);
-            } else {
-                preds.push(predsBatch);
-                return getPreds();
-            }
-        });
-    }
-
-    return getPreds().then((preds) => {
-        console.timeEnd('someFunction')
-
-        let allPreds = tf.concat(preds);
-
-        var avg_pred = tf.mean(allPreds, [0]);
-
-        var pred_b = avg_pred["broadcastTo"]([smiles.length, FP_SIZE]);
-
-        // cosine similarity
-        // (a dot b) / (|a| * |b|)
-        var dot = tf.sum(tf.mul(fingerprints, pred_b), 1);
-        var n1 = tf.norm(fingerprints, 2, 1);
-        var n2 = tf.norm(pred_b, 2, 1);
-        var d = tf.maximum(tf.mul(n1, n2), 1e-6);
-        var dist = tf.div(dot, d).arraySync();
-
-        // join smiles with distance
-        var scores = [];
-        for (var i = 0; i < smiles.length; ++i) {
-            scores.push([smiles[i], dist[i]]);
-        }
-
-        // sort predictions
-        scores.sort((a, b) => b[1] - a[1]);
-
-        return Promise.resolve(scores);
-    });
-}
-
-/**
- * Compute the Hamilton product of two quaternion vectors.
- */
-function hamiltonProduct(a: number[], b: number[]): number[] {
-    // https://en.wikipedia.org/wiki/Quaternion?Hamilton%20product#Hamilton_product
-    return [
-        (a[0]*b[0]) - (a[1]*b[1]) - (a[2]*b[2]) - (a[3]*b[3]),
-        (a[0]*b[1]) + (a[1]*b[0]) - (a[2]*b[3]) + (a[3]*b[2]),
-        (a[0]*b[2]) + (a[1]*b[3]) + (a[2]*b[0]) - (a[3]*b[1]),
-        (a[0]*b[3]) - (a[1]*b[2]) + (a[2]*b[1]) + (a[3]*b[0]),
-    ]
-}
-
-/**
- * Rotate a list of coordinates about a point with a quaternion rotation vector.
- * @param coords    A list of objects with 'x','y','z' values.
- * @param rot       A length 4 quaternion describing the rotation.
- * @param center    The point to rotate about (x,y,z)
- * @returns         A new list of coordinate objects after rotation.
- */
-function quaternionRotation(coords: any, rot: number[], center: number[]): any {
-    var rot_coords = [];
-
-    var R = rot;
-    var Rp = [R[0], -R[1], -R[2], -R[3]];
-
-    for (var i = 0; i < coords.length; ++i) {
-        var p = [
-            0,
-            coords[i].x - center[0],
-            coords[i].y - center[1],
-            coords[i].z - center[2]
-        ];
-        var p2 = hamiltonProduct(hamiltonProduct(R, p), Rp);
-
-        rot_coords.push({
-            'x': p2[1] + center[0],
-            'y': p2[2] + center[1],
-            'z': p2[3] + center[2],
-        });
-    }
-
-    return rot_coords;
-}
-
-/**
- * Returns a random unit quaternion.
- */
-function randomRotation(): number[] {
-    var r = tf.randomNormal([4]);
-    var n = tf.div(r, r.norm());
-    return n.arraySync();
-}
-
-/**
  * Runs deepfrag.
- * @param  {string} receptorPdb         The receptor PDB string.
- * @param  {string} ligandPdb           The ligand PDB string.
- * @param  {Array<number>} center       The location of the growing point.
- * @param  {number} numPseudoRotations  The number of grid rotations.
+ * @param  {string}        receptorPdb         The receptor PDB string.
+ * @param  {string}        ligandPdb           The ligand PDB string.
+ * @param  {Array<number>} center              The location of the growing
+ *                                             point.
+ * @param  {number}        numRotations        The number of grid rotations.
+ * @param  {boolean}       useReflectsIncRots  Whether to use reflections and
+ *                                             incremental rotations (90
+ *                                             degrees) to speed the
+ *                                             calculations.
  * @returns Promise  A promise that fulfills when done. Resolves with scores.
  */
-export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: number[], numPseudoRotations: number): Promise<any> {
+export function runDeepFrag(
+    receptorPdb: string, ligandPdb: string, center: number[],
+    numRotations: number, useReflectsIncRots: boolean
+): Promise<any> {
     // Load fingerprints.
     var fingerprintsPromise = get("./DeepFrag/fingerprints.json");
 
@@ -369,35 +125,9 @@ export function runDeepFrag(receptorPdb: string, ligandPdb: string, center: numb
         }
         var fingerprints = tf.tensor(fpdat);
 
-        // Get data required to prepare for grid generation.
-        // rec_coords, rec_layers, parent_coords, parent_layers, conn
-        let preGridGenData = DeepFragMakeGrid.pre_grid_gen(
-            receptorPdb, ligandPdb, center
-        );
-
-        // Rotate the receptor and ligand about the connection point.
-        var rot = randomRotation();
-        preGridGenData[0] = quaternionRotation(preGridGenData[0], rot, center); // receptor
-        preGridGenData[2] = quaternionRotation(preGridGenData[2], rot, center); // parent
-
-        // Generate the grids for each channel.
-        let grids = [];
-        for (let i = 0; i < 9; i++) {
-            grids.push(
-                DeepFragMakeGrid.make_grid_given_channel(
-                    preGridGenData[0], preGridGenData[1],
-                    preGridGenData[2], preGridGenData[3],
-                    preGridGenData[4], i
-                )
-            );
-        }
-
-        // Merge all the channels into one.
-        let grid = DeepFragMakeGrid.sum_channel_grids(grids);
-
         // Run inference. Scores is an array of arrays, [SMILES,
         // score], ordered from best score to worst.
-        return runInference(model, grid, smiles, fingerprints, numPseudoRotations).then((scores) => {
+        return runInference(model, smiles, fingerprints, DeepFragMakeGrid, receptorPdb, ligandPdb, center, numRotations, useReflectsIncRots).then((scores) => {
             // Get values as csv
             let scoresCSV = "Rank,Fragment SMILES,Score\n";
             for (var j = 0; j < scores.length; ++j) {

@@ -65,7 +65,6 @@ export const store = new Vuex.Store({
             "center_y": false,
             "center_z": false
         },
-        // hideDockingBoxParams: false,
         "tabIdx": 0,
         "ligandFileName": "",
         "ligandContents": "",
@@ -91,7 +90,8 @@ export const store = new Vuex.Store({
         "selectedAtomClickAction": "select",
         "showFileInputs": true,
         "isExampleData": false,
-        "numPseudoRotations": 32,
+        "numRotations": 32,
+        "reflectAndStepwiseRot": false,
         "waitingMsg": ""
     },
     "mutations": {
