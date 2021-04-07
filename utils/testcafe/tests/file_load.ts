@@ -55,7 +55,7 @@ function fileLoad(
 
         const time = await Selector("#executionTime", { timeout: 60000 }).innerText;
         let firstSMILESSelStr = "#outputTable > tbody > tr:nth-child(1) > td:nth-child(2)";
-        const firstSMILES = await Selector(firstSMILESSelStr, { timeout: 60000 }).innerText;
+        const firstSMILES = await Selector(firstSMILESSelStr, { timeout: 100000 }).innerText;
 
         if (testDownload) {
             await t
