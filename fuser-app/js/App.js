@@ -33,10 +33,10 @@ define("Fuser", ["require", "exports"], function (require, exports) {
     exports.loadOB = loadOB;
     /**
      * Merge a frag OBMol into a parent OBMol. The parent OBMol is updated in-place.
-     * @param parent      Parent OBMol that will be updated.
-     * @param frag     Fragment OBMol.
-     * @param parentIdx     Index of the connection point atom in the parent.
-     * @param fragIdx       Index of the fragment fake atom "*".
+     * @param parent     Parent OBMol that will be updated.
+     * @param frag       Fragment OBMol.
+     * @param parentIdx  Index of the connection point atom in the parent.
+     * @param fragIdx    Index of the fragment fake atom "*".
      */
     function fuseMol(parent, frag, parentIdx, fragIdx) {
         // other idx -> base idx
@@ -241,6 +241,22 @@ define("App", ["require", "exports"], function (require, exports) {
         }
         return vals;
     }
+    /**
+     * Runs if there is an error from openbabel.js when generating 3D molecules..
+     * @returns void
+     */
+    function on3DError() {
+        alert("Unable to create molecule! If you checked \"Optimize atomic coordinates\", try unchecking it. If you still get an error, generate a SMILES string instead of an SDF or PDB file. Your molecule is likely too large or complex to generate 3D atomic coordinates in the browser.");
+        waitButton("downloadPDBBtn", false);
+    }
+    /**
+     * Runs if there is an error from openbabel.js when generating a SMI file..
+     * @returns void
+     */
+    function onSMIError() {
+        alert("Unable to create molecule! Your molecule is likely too large or complex to \"fuse\" in the browser, or perhaps your browser does not support WebAssembly.");
+        waitButton("downloadPDBBtn", false);
+    }
     $("#downloadSMILESBtn").on("click", 
     /**
      * Creates and downloads a fused compound in the SMILES format.
@@ -261,6 +277,8 @@ define("App", ["require", "exports"], function (require, exports) {
             var blob = new Blob([smi + '\n'], { type: "text/plain;charset=utf-8" });
             saveAsWrapper(blob, "fused.smi");
             waitButton("downloadSMILESBtn", false);
+        })["catch"](function (e) {
+            onSMIError();
         });
     });
     $("#downloadSDFBtn").on("click", 
@@ -285,6 +303,8 @@ define("App", ["require", "exports"], function (require, exports) {
             var blob = new Blob([sdf + '\n'], { type: "text/plain;charset=utf-8" });
             saveAsWrapper(blob, "fused.sdf");
             waitButton("downloadSDFBtn", false);
+        })["catch"](function (e) {
+            on3DError();
         });
     });
     $("#downloadPDBBtn").on("click", 
@@ -309,6 +329,8 @@ define("App", ["require", "exports"], function (require, exports) {
             var blob = new Blob([pdb + '\n'], { type: "text/plain;charset=utf-8" });
             saveAsWrapper(blob, "fused.pdb");
             waitButton("downloadPDBBtn", false);
+        })["catch"](function (e) {
+            on3DError();
         });
     });
     $("#expand").on("click", 

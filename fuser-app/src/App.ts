@@ -86,6 +86,24 @@ function getVarVals(): any {
     return vals;
 }
 
+/**
+ * Runs if there is an error from openbabel.js when generating 3D molecules..
+ * @returns void
+ */
+function on3DError(): void {
+    alert("Unable to create molecule! If you checked \"Optimize atomic coordinates\", try unchecking it. If you still get an error, generate a SMILES string instead of an SDF or PDB file. Your molecule is likely too large or complex to generate 3D atomic coordinates in the browser.")
+    waitButton("downloadPDBBtn", false);
+}
+
+/**
+ * Runs if there is an error from openbabel.js when generating a SMI file..
+ * @returns void
+ */
+function onSMIError(): void {
+    alert("Unable to create molecule! Your molecule is likely too large or complex to \"fuse\" in the browser, or perhaps your browser does not support WebAssembly.")
+    waitButton("downloadPDBBtn", false);
+}
+
 $("#downloadSMILESBtn").on(
     "click",
 
@@ -111,6 +129,8 @@ $("#downloadSMILESBtn").on(
             var blob = new Blob([smi + '\n'], {type: "text/plain;charset=utf-8"});
             saveAsWrapper(blob, "fused.smi");
             waitButton("downloadSMILESBtn", false);
+        }).catch((e) => {
+            onSMIError();
         });
     }
 );
@@ -139,6 +159,8 @@ $("#downloadSDFBtn").on(
             var blob = new Blob([sdf + '\n'], {type: "text/plain;charset=utf-8"});
             saveAsWrapper(blob, "fused.sdf");
             waitButton("downloadSDFBtn", false);
+        }).catch((e) => {
+            on3DError();
         });
     }
 )
@@ -167,6 +189,8 @@ $("#downloadPDBBtn").on(
             var blob = new Blob([pdb + '\n'], {type: "text/plain;charset=utf-8"});
             saveAsWrapper(blob, "fused.pdb");
             waitButton("downloadPDBBtn", false);
+        }).catch((e) => {
+            on3DError();
         });
     }
 )

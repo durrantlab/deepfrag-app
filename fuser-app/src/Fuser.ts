@@ -49,10 +49,10 @@ export function loadOB(): Promise<any> {
 
 /**
  * Merge a frag OBMol into a parent OBMol. The parent OBMol is updated in-place.
- * @param parent      Parent OBMol that will be updated.
- * @param frag     Fragment OBMol.
- * @param parentIdx     Index of the connection point atom in the parent.
- * @param fragIdx       Index of the fragment fake atom "*".
+ * @param parent     Parent OBMol that will be updated.
+ * @param frag       Fragment OBMol.
+ * @param parentIdx  Index of the connection point atom in the parent.
+ * @param fragIdx    Index of the fragment fake atom "*".
  */
 function fuseMol(parent: any, frag: any, parentIdx: number, fragIdx: number): void {
     // other idx -> base idx
@@ -187,7 +187,6 @@ function loadFused(ligandPDB: string, smi: string, center: number[], optimizeFra
  */
 export function make3D(ligandPDB: string, smi: string, center: number[], format: string, extraOptimization: boolean = false): Promise<string> {
     return loadFused(ligandPDB, smi, center, true).then((mol) => {
-
         var gen3d = OB.OBOp.FindType('Gen3D');
         gen3d.Do(mol, '');
 
