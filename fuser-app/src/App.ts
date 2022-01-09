@@ -57,7 +57,7 @@ function waitButton(id: string, val: boolean = true): Promise<any> {
 }
 
 /**
- * A wrapper arounf the FileSaver.saveAs function. Uses requirejs to load the
+ * A wrapper around the FileSaver.saveAs function. Uses requirejs to load the
  * module if needed.
  * @param  {*}      blob      The blob to save (download).
  * @param  {string} filename  The filename.
@@ -105,6 +105,10 @@ function onSMIError(): void {
     waitButton("downloadPDBBtn", false);
 }
 
+/**
+ * Gets the SMILES string of the fused molecule
+ * @returns Promise  A promise that resolves the SMILES string.
+ */
 function getSMILES(): Promise<string> {
     let Fuser;
     return import("./Fuser")
@@ -124,7 +128,12 @@ function getSMILES(): Promise<string> {
 
 $("#viewStructureBtn").on(
     "click",
-    function(): void {
+
+    /**
+     * Visualizes a fused compound in the browser.
+     * @returns void
+     */
+     function(): void {
         waitButton("viewStructureBtn", true)
         .then(() => {
             return getSMILES();
