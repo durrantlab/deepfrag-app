@@ -139,7 +139,7 @@ $("#viewStructureBtn").on(
             return getSMILES();
         }).then((smi) => {
             $("#mol-canvas").show();
-            let options = {"width": 250, "height": 250, "padding": 10};
+            let options = {"width": 250, "height": 250};  // , "padding": 10};
             let smilesDrawer = new SmilesDrawer.Drawer(options);
             SmilesDrawer.parse(smi, function(tree) {
                 smilesDrawer.draw(tree, "mol-canvas", "light", false);

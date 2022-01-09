@@ -213,7 +213,7 @@ define("App", ["require", "exports"], function (require, exports) {
         });
     }
     /**
-     * A wrapper arounf the FileSaver.saveAs function. Uses requirejs to load the
+     * A wrapper around the FileSaver.saveAs function. Uses requirejs to load the
      * module if needed.
      * @param  {*}      blob      The blob to save (download).
      * @param  {string} filename  The filename.
@@ -257,6 +257,10 @@ define("App", ["require", "exports"], function (require, exports) {
         alert("Unable to create molecule! Your molecule is likely too large or complex to \"fuse\" in the browser, or perhaps your browser does not support WebAssembly.");
         waitButton("downloadPDBBtn", false);
     }
+    /**
+     * Gets the SMILES string of the fused molecule
+     * @returns Promise  A promise that resolves the SMILES string.
+     */
     function getSMILES() {
         var Fuser;
         return new Promise(function (resolve_1, reject_1) { require(["Fuser"], resolve_1, reject_1); }).then(function (fuser) {
@@ -269,13 +273,18 @@ define("App", ["require", "exports"], function (require, exports) {
             return Fuser.makeSMILES(pdb, vals["smi"], [vals["x"], vals["y"], vals["z"]]);
         });
     }
-    $("#viewStructureBtn").on("click", function () {
+    $("#viewStructureBtn").on("click", 
+    /**
+     * Visualizes a fused compound in the browser.
+     * @returns void
+     */
+    function () {
         waitButton("viewStructureBtn", true)
             .then(function () {
             return getSMILES();
         }).then(function (smi) {
             $("#mol-canvas").show();
-            var options = { "width": 250, "height": 250, "padding": 10 };
+            var options = { "width": 250, "height": 250 }; // , "padding": 10};
             var smilesDrawer = new SmilesDrawer.Drawer(options);
             SmilesDrawer.parse(smi, function (tree) {
                 smilesDrawer.draw(tree, "mol-canvas", "light", false);
