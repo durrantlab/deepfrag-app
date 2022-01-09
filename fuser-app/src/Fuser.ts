@@ -66,7 +66,7 @@ function fuseMol(parent: any, frag: any, parentIdx: number, fragIdx: number): vo
         var other_atom = frag.GetAtom(i);
         atom.SetAtomicNum(other_atom.GetAtomicNum());
 
-        atom_map[other_atom.GetIndex()+1] = atom.GetIndex() + 1;
+        atom_map[other_atom.GetIndex() + 1] = atom.GetIndex() + 1;
     }
 
     // Add all bonds.

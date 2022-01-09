@@ -12,4 +12,4 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-export let VERSION = "1.0.1";
+export let VERSION = "1.0.2";

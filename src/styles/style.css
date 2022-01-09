@@ -280,3 +280,12 @@ div.col small {
 label[for="simplifyRotation"] {
     white-space: nowrap;
 }
+
+/* see https://stackoverflow.com/questions/49889003/cannot-write-into-input-field-on-safari */
+input, input:before, input:after {
+    -webkit-user-select: initial;
+    -khtml-user-select: initial;
+    -moz-user-select: initial;
+    -ms-user-select: initial;
+    user-select: initial;
+}

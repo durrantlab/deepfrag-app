@@ -19,6 +19,7 @@
 declare var saveAs;
 declare var requirejs;
 declare var LZString;
+declare var SmilesDrawer;
 
 var varNames = [
     "pdb",
@@ -104,6 +105,43 @@ function onSMIError(): void {
     waitButton("downloadPDBBtn", false);
 }
 
+function getSMILES(): Promise<string> {
+    let Fuser;
+    return import("./Fuser")
+    .then((fuser) => {
+        Fuser = fuser;
+        return Promise.resolve(Fuser.loadOB());
+    })
+    .then(() => {
+        let vals = getVarVals();
+        let pdb = vals["pdb"];
+        return Fuser.makeSMILES(
+            pdb, vals["smi"],
+            [vals["x"], vals["y"], vals["z"]]
+        );
+    });
+}
+
+$("#viewStructureBtn").on(
+    "click",
+    function(): void {
+        waitButton("viewStructureBtn", true)
+        .then(() => {
+            return getSMILES();
+        }).then((smi) => {
+            $("#mol-canvas").show();
+            let options = {"width": 250, "height": 250, "padding": 10};
+            let smilesDrawer = new SmilesDrawer.Drawer(options);
+            SmilesDrawer.parse(smi, function(tree) {
+                smilesDrawer.draw(tree, "mol-canvas", "light", false);
+                // Alternatively, draw to SVG:
+                // svgDrawer.draw(tree, 'output-svg', 'dark', false);
+            });
+            waitButton("viewStructureBtn", false)
+        });
+    }
+)
+
 $("#downloadSMILESBtn").on(
     "click",
 
@@ -112,19 +150,9 @@ $("#downloadSMILESBtn").on(
      * @returns void
      */
     function (): void {
-        let Fuser;
-        waitButton("downloadSMILESBtn", true).then(() => {
-            return import("./Fuser");
-        }).then((fuser) => {
-            Fuser = fuser;
-            return Promise.resolve(Fuser.loadOB());
-        }).then(() => {
-            let vals = getVarVals();
-            let pdb = vals["pdb"];
-            return Fuser.makeSMILES(
-                pdb, vals["smi"],
-                [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])]
-            );
+        waitButton("downloadSMILESBtn", true)
+        .then(() => {
+            return getSMILES();
         }).then((smi) => {
             var blob = new Blob([smi + '\n'], {type: "text/plain;charset=utf-8"});
             saveAsWrapper(blob, "fused.smi");
@@ -153,7 +181,7 @@ $("#downloadSDFBtn").on(
         }).then(() => {
             let vals = getVarVals();
             let pdb = vals["pdb"];
-            let center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
+            let center = [vals["x"], vals["y"], vals["z"]];
             return Fuser.make3D(pdb, vals["smi"], center, 'sdf', extraOptim);
         }).then((sdf) => {
             var blob = new Blob([sdf + '\n'], {type: "text/plain;charset=utf-8"});
@@ -183,7 +211,7 @@ $("#downloadPDBBtn").on(
         }).then(() => {
             let vals = getVarVals();
             let pdb = vals["pdb"];
-            let center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
+            let center = [vals["x"], vals["y"], vals["z"]];
             return Fuser.make3D(pdb, vals["smi"], center, 'pdb', extraOptim);
         }).then((pdb) => {
             var blob = new Blob([pdb + '\n'], {type: "text/plain;charset=utf-8"});

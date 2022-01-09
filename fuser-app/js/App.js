@@ -257,22 +257,43 @@ define("App", ["require", "exports"], function (require, exports) {
         alert("Unable to create molecule! Your molecule is likely too large or complex to \"fuse\" in the browser, or perhaps your browser does not support WebAssembly.");
         waitButton("downloadPDBBtn", false);
     }
+    function getSMILES() {
+        var Fuser;
+        return new Promise(function (resolve_1, reject_1) { require(["Fuser"], resolve_1, reject_1); }).then(function (fuser) {
+            Fuser = fuser;
+            return Promise.resolve(Fuser.loadOB());
+        })
+            .then(function () {
+            var vals = getVarVals();
+            var pdb = vals["pdb"];
+            return Fuser.makeSMILES(pdb, vals["smi"], [vals["x"], vals["y"], vals["z"]]);
+        });
+    }
+    $("#viewStructureBtn").on("click", function () {
+        waitButton("viewStructureBtn", true)
+            .then(function () {
+            return getSMILES();
+        }).then(function (smi) {
+            $("#mol-canvas").show();
+            var options = { "width": 250, "height": 250, "padding": 10 };
+            var smilesDrawer = new SmilesDrawer.Drawer(options);
+            SmilesDrawer.parse(smi, function (tree) {
+                smilesDrawer.draw(tree, "mol-canvas", "light", false);
+                // Alternatively, draw to SVG:
+                // svgDrawer.draw(tree, 'output-svg', 'dark', false);
+            });
+            waitButton("viewStructureBtn", false);
+        });
+    });
     $("#downloadSMILESBtn").on("click", 
     /**
      * Creates and downloads a fused compound in the SMILES format.
      * @returns void
      */
     function () {
-        var Fuser;
-        waitButton("downloadSMILESBtn", true).then(function () {
-            return new Promise(function (resolve_1, reject_1) { require(["./Fuser"], resolve_1, reject_1); });
-        }).then(function (fuser) {
-            Fuser = fuser;
-            return Promise.resolve(Fuser.loadOB());
-        }).then(function () {
-            var vals = getVarVals();
-            var pdb = vals["pdb"];
-            return Fuser.makeSMILES(pdb, vals["smi"], [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])]);
+        waitButton("downloadSMILESBtn", true)
+            .then(function () {
+            return getSMILES();
         }).then(function (smi) {
             var blob = new Blob([smi + '\n'], { type: "text/plain;charset=utf-8" });
             saveAsWrapper(blob, "fused.smi");
@@ -290,14 +311,14 @@ define("App", ["require", "exports"], function (require, exports) {
         var Fuser;
         var extraOptim = $("#extraOptimization").prop("checked");
         waitButton("downloadSDFBtn", true).then(function () {
-            return new Promise(function (resolve_2, reject_2) { require(["./Fuser"], resolve_2, reject_2); });
+            return new Promise(function (resolve_2, reject_2) { require(["Fuser"], resolve_2, reject_2); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Fuser.loadOB();
         }).then(function () {
             var vals = getVarVals();
             var pdb = vals["pdb"];
-            var center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
+            var center = [vals["x"], vals["y"], vals["z"]];
             return Fuser.make3D(pdb, vals["smi"], center, 'sdf', extraOptim);
         }).then(function (sdf) {
             var blob = new Blob([sdf + '\n'], { type: "text/plain;charset=utf-8" });
@@ -316,14 +337,14 @@ define("App", ["require", "exports"], function (require, exports) {
         var Fuser;
         var extraOptim = $("#extraOptimization").prop("checked");
         waitButton("downloadPDBBtn", true).then(function () {
-            return new Promise(function (resolve_3, reject_3) { require(["./Fuser"], resolve_3, reject_3); });
+            return new Promise(function (resolve_3, reject_3) { require(["Fuser"], resolve_3, reject_3); });
         }).then(function (fuser) {
             Fuser = fuser;
             return Fuser.loadOB();
         }).then(function () {
             var vals = getVarVals();
             var pdb = vals["pdb"];
-            var center = [parseInt(vals["x"]), parseInt(vals["y"]), parseInt(vals["z"])];
+            var center = [vals["x"], vals["y"], vals["z"]];
             return Fuser.make3D(pdb, vals["smi"], center, 'pdb', extraOptim);
         }).then(function (pdb) {
             var blob = new Blob([pdb + '\n'], { type: "text/plain;charset=utf-8" });

@@ -43,14 +43,16 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
         <div class="container-fluid" style="padding-top:15px; padding-bottom:15px;">
             <div class="row">
                 <div class="col-md-12">
+                    <canvas id="mol-canvas" style="float:right; display:none;" width="250" height="250"></canvas>
+
                     <h3>
                         Fuser Web App
                     </h3>
                     <p>
                         The Fuser Web App adds a molecular fragment (SMILES)
                         to an existing small molecule (PDB). Click the buttons
-                        below to download the molecule + fragment (fused)
-                        compound in your preferred format. <a
+                        below to view or download the molecule + fragment
+                        (fused) compound in your preferred format. <a
                            href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1"
                            target="_blank">GPLv2 licensed.</a>
                     </p>
@@ -65,7 +67,9 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
                     </div>
                 </div>
             </div>
-            <hr class="mb-3 mt-2 hide-on-expand" />
+
+            <hr style="clear:both;" class="mb-3 mt-2 hide-on-expand" />
+
             <div class="row" id="pdb-row" style="display:none;">
                 <div class="col-md-12">
                     <div class="form-group">
@@ -135,6 +139,9 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
             <!-- <hr class="mb-4 mt-1" /> -->
 
+            <button type="submit" id="viewStructureBtn" class="btn btn-primary mb-1">
+                View Fused Molecule
+            </button>
             <button type="submit" id="downloadSMILESBtn" class="btn btn-primary mb-1">
                 Download SMILES
             </button>
@@ -147,6 +154,7 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
         </div>
 
         <script src="external/jquery.min.js"></script>
+        <script src="external/smiles-drawer.min.js" async></script>
 
         <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script> -->
         <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->

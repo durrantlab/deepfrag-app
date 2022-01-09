@@ -1,6 +1,15 @@
 Changes
 =======
 
+1.0.2
+-----
+
+* Minor updates to Fuser app.
+  * Added button to view the fused molecule in the browser, using the
+    [smilesDrawer library](https://github.com/reymond-group/smilesDrawer).
+  * Corrected bug that occasionally caused the Fuser app to add the fragment to
+    the wrong atom.
+
 1.0.1
 -----
 

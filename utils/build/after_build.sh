@@ -57,6 +57,7 @@ find . -type f -name "*.sh" -exec rm '{}' \;
 cd -
 
 # Also create a ZIP file of the dist directory, for convenient distribution.
+rm -f deepfrag-app.zip
 mv dist deepfrag-app
 zip -r deepfrag-app.zip deepfrag-app
 mv deepfrag-app dist
