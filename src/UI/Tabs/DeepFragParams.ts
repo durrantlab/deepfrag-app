@@ -71,6 +71,8 @@ let computedFunctions = {
         if (!(validation["center_x"] || validation["center_y"] || validation["center_z"])) {
             return true;
         }
+
+        return false;
     },
 
     /**
@@ -216,20 +218,29 @@ let methodsFunctions = {
             yellowSphereCoors: [38.753, -13.383, 11.064]
         }).then(() => {
             // These values should now validate.
-            let validateVars = Object.keys(this.$store.state["validation"]);
-            const validateVarsLen = validateVars.length;
-            for (let i = 0; i < validateVarsLen; i++) {
-                const validateVar = validateVars[i];
-                this.$store.commit("setValidationParam", {
-                    name: validateVar,
-                    val: true
-                });
-            }
+            this.validateAllParameters();
 
             // Also update file names.
             this.$store.commit("updateFileName", { type: "ligand", filename: "2XP9.aligned.lig.no_carboxylate.sdf" });
             this.$store.commit("updateFileName", { type: "receptor", filename: "2XP9.aligned.pdb" });
         });
+    },
+
+    /**
+     * In some circumstances, it's best just to validate all parameters
+     * automatically (e.g., when loading the example data).
+     * @returns void
+     */
+    validateAllParameters(): void {
+        let validateVars = Object.keys(this.$store.state["validation"]);
+        const validateVarsLen = validateVars.length;
+        for (let i = 0; i < validateVarsLen; i++) {
+            const validateVar = validateVars[i];
+            this.$store.commit("setValidationParam", {
+                name: validateVar,
+                val: true
+            });
+        }
     },
 
     /**
@@ -437,6 +448,26 @@ let methodsFunctions = {
 function mountedFunction(): void {
     this["canLoad"] = sessionStorage.getItem("deepFragSaveData") !== null;
     this["webAssemblyAvailable"] = Utils.webAssemblySupported();
+
+    // Auto submit if loading data via api.
+    if (this.$store.state["viaApi"]) {
+        this.$store.dispatch("loadReceptorLigandSimultaneously", {
+            receptorContents: window["deepFragPostDataReceptor"],
+            ligandContents: window["deepFragPostDataParent"],
+            yellowSphereCoors: window["deepFragPostDataRoot"]
+        }).then(() => {
+            // These values should now validate.
+            this.validateAllParameters();
+
+            // Be sure to wait long enough for everythign to load. This is a bit
+            // hackish, but required so api gives same answer as regular web
+            // app. Could probably get away with shorter delay, but playing it
+            // safe.
+            setTimeout(() => {
+                this["onSubmitClick"]();
+            }, 2000);
+        });
+    }
 }
 
 /**
@@ -447,131 +478,136 @@ export function setup(): void {
     Vue.component('deepfrag-params', {
         "template": /* html */ `
             <div>
-                <b-form v-if="webAssemblyAvailable">
-                    <sub-section
-                      title="Input Receptor and Ligand Files"
-                      v-if="showFileInputs">
-                        <file-input
-                            label="Receptor"
-                            id="receptor"
-                            description="Formats: PDB, XYZ, and PQR. No hydrogen atoms required."
-                            accept=".pdb,.xyz,.pqr" convert=""
-                        >
-                            <template v-slot:extraDescription>
-                                <span v-if="showKeepProteinOnlyLink">
-                                    <a href='' @click="onShowKeepProteinOnlyClick($event);">Automatically remove all non-protein atoms?</a>
-                                </span>
-                                <span v-else>
-                                    <b>(Removed all non-protein atoms!)</b>
-                                </span>
-                            </template>
-                        </file-input>
+                <div v-if="$store.state.viaApi" class="text-center">
+                    <p>Starting DeepFrag job...</p>
+                </div>
+                <div class="via-api-hidden">
+                    <b-form v-if="webAssemblyAvailable">
+                        <sub-section
+                        title="Input Receptor and Ligand Files"
+                        v-if="showFileInputs">
+                            <file-input
+                                label="Receptor"
+                                id="receptor"
+                                description="Formats: PDB, XYZ, and PQR. No hydrogen atoms required."
+                                accept=".pdb,.xyz,.pqr" convert=""
+                            >
+                                <template v-slot:extraDescription>
+                                    <span v-if="showKeepProteinOnlyLink">
+                                        <a href='' @click="onShowKeepProteinOnlyClick($event);">Automatically remove all non-protein atoms?</a>
+                                    </span>
+                                    <span v-else>
+                                        <b>(Removed all non-protein atoms!)</b>
+                                    </span>
+                                </template>
+                            </file-input>
 
-                        <file-input
-                            label="Ligand"
-                            id="ligand"
-                            description="Formats: PDB, SDF, XYZ, and MOL2. No hydrogen atoms required."
-                            accept=".pdb,.sdf,.xyz,.mol2" convert=""
-                        >
-                            <template v-slot:extraDescription></template>
-                        </file-input>
-                        <form-button
-                            id="useExampleFiles"
-                            v-if="$store.state.ligandContents === '' && $store.state.receptorContents === ''"
-                            @click.native="useExampleDeepFragInputFiles"
-                            cls="float-right">Use Example Files</form-button>
-                    </sub-section>
+                            <file-input
+                                label="Ligand"
+                                id="ligand"
+                                description="Formats: PDB, SDF, XYZ, and MOL2. No hydrogen atoms required."
+                                accept=".pdb,.sdf,.xyz,.mol2" convert=""
+                            >
+                                <template v-slot:extraDescription></template>
+                            </file-input>
+                            <form-button
+                                id="useExampleFiles"
+                                v-if="$store.state.ligandContents === '' && $store.state.receptorContents === ''"
+                                @click.native="useExampleDeepFragInputFiles"
+                                cls="float-right">Use Example Files</form-button>
+                        </sub-section>
 
-                    <b-alert :show="isExampleData">
-                        Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1 (<b><i>Hs</i>Pin1p</b>)
-                        bound to a small-molecule inhibitor (PDB ID: <a
-                            href="https://www.rcsb.org/structure/2XP9"
-                            target="_blank">2XP9</a>). A ligand <b>carboxylate moiety</b> has been
-                            removed at the growing point marked with a yellow sphere.
-                    </b-alert>
+                        <b-alert :show="isExampleData">
+                            Peptidyl-prolyl cis-trans isomerase NIMA-interacting 1 (<b><i>Hs</i>Pin1p</b>)
+                            bound to a small-molecule inhibitor (PDB ID: <a
+                                href="https://www.rcsb.org/structure/2XP9"
+                                target="_blank">2XP9</a>). A ligand <b>carboxylate moiety</b> has been
+                                removed at the growing point marked with a yellow sphere.
+                        </b-alert>
 
-                    <sub-section title="Molecular Viewer">
-                        <form-group
-                            label=""
-                            id="input-group-receptor-3dmol"
-                            description=""
-                        >
-                            <div class="bv-example-row container-fluid">
-                                <b-row>
-                                    <b-col style="padding-left: 0; padding-right: 10px;">
-                                        <threedmol
-                                            id="main-viewer"
-                                            type="receptor"></threedmol>
-                                    </b-col>
-                                </b-row>
-                            </div>
-                        </form-group>
-                        <b-container fluid v-if="bothReceptorAndLigandSpecified">
-                            <b-form-radio-group
-                                style="width:100%"
-                                id="selected-atom-actions"
-                                v-model="selectedAtomClickAction"
-                                :options="atomClickActions"
-                                buttons
-                                button-variant="outline-primary"
-                                name="selected-atom-actions"
-                            ></b-form-radio-group>
+                        <sub-section title="Molecular Viewer">
+                            <form-group
+                                label=""
+                                id="input-group-receptor-3dmol"
+                                description=""
+                            >
+                                <div class="bv-example-row container-fluid">
+                                    <b-row>
+                                        <b-col style="padding-left: 0; padding-right: 10px;">
+                                            <threedmol
+                                                id="main-viewer"
+                                                type="receptor"></threedmol>
+                                        </b-col>
+                                    </b-row>
+                                </div>
+                            </form-group>
+                            <b-container fluid v-if="bothReceptorAndLigandSpecified">
+                                <b-form-radio-group
+                                    style="width:100%"
+                                    id="selected-atom-actions"
+                                    v-model="selectedAtomClickAction"
+                                    :options="atomClickActions"
+                                    buttons
+                                    button-variant="outline-primary"
+                                    name="selected-atom-actions"
+                                ></b-form-radio-group>
+                            </b-container>
+                            <small v-if="showDefineGrowingPointValidationMsg" style="text-align:center;" alert tabindex="-1" class="text-danger form-text">To continue, select an atom to define the growing (connection) point!</small>
+                        </sub-section>
+
+                        <span style="display:none;">{{validate(false)}}</span>  <!-- Hackish. Just to make reactive. -->
+
+                        <b-container
+                            v-if="bothReceptorAndLigandSpecified"
+                            fluid>
+
+                            <b-row>
+                                <b-col sm="6">
+                                    <form-group
+                                        label=""
+                                        id="rotations-count"
+                                        description="Rotating molecules to generate multiple predictions improves accuracy but takes longer."
+                                        style="position:relative; top:-21px;">
+
+                                        <label for="numRotationsRange">
+                                            <!-- <span :style="manyRotsWarningStyle">Large values may crash the app.</a> -->
+                                        </label>
+                                        <b-form-input id="numRotationsRange" v-model="numRotations" type="range" min="1" max="32"></b-form-input>
+                                        <div style="text-align:center;margin-top:-10px;"><small>
+                                            ({{numRotations}}
+                                            <span v-if="numRotations > 1">rotations)</span>
+                                            <span v-else="numRotations > 1">rotation)</span>
+                                        </small></div>
+                                    </form-group>
+                                </b-col>
+                                <b-col sm="6">
+                                    <form-group
+                                        label=""
+                                        id="simpRotGroup"
+                                        description="Reflections/stepwise rotations (90&deg;) improve speed but deviate from the original DeepFrag.">
+                                        <b-form-checkbox
+                                            v-model="reflectAndStepwiseRot"
+                                            style="margin-bottom:18px;"
+                                            id="simplifyRotation"
+                                            name="simplifyRotation">
+                                                Reflections/stepwise rotations
+                                        </b-form-checkbox>
+                                    </form-group>
+                                </b-col>
+                            </b-form-row>
                         </b-container>
-                        <small v-if="showDefineGrowingPointValidationMsg" style="text-align:center;" alert tabindex="-1" class="text-danger form-text">To continue, select an atom to define the growing (connection) point!</small>
-                    </sub-section>
-
-                    <span style="display:none;">{{validate(false)}}</span>  <!-- Hackish. Just to make reactive. -->
-
-                    <b-container
-                        v-if="bothReceptorAndLigandSpecified"
-                        fluid>
-
-                        <b-row>
-                            <b-col sm="6">
-                                <form-group
-                                    label=""
-                                    id="rotations-count"
-                                    description="Rotating molecules to generate multiple predictions improves accuracy but takes longer."
-                                    style="position:relative; top:-21px;">
-
-                                    <label for="numRotationsRange">
-                                        <!-- <span :style="manyRotsWarningStyle">Large values may crash the app.</a> -->
-                                    </label>
-                                    <b-form-input id="numRotationsRange" v-model="numRotations" type="range" min="1" max="32"></b-form-input>
-                                    <div style="text-align:center;margin-top:-10px;"><small>
-                                        ({{numRotations}}
-                                        <span v-if="numRotations > 1">rotations)</span>
-                                        <span v-else="numRotations > 1">rotation)</span>
-                                    </small></div>
-                                </form-group>
-                            </b-col>
-                            <b-col sm="6">
-                                <form-group
-                                    label=""
-                                    id="simpRotGroup"
-                                    description="Reflections/stepwise rotations (90&deg;) improve speed but deviate from the original DeepFrag.">
-                                    <b-form-checkbox
-                                        v-model="reflectAndStepwiseRot"
-                                        style="margin-bottom:18px;"
-                                        id="simplifyRotation"
-                                        name="simplifyRotation">
-                                            Reflections/stepwise rotations
-                                    </b-form-checkbox>
-                                </form-group>
-                            </b-col>
-                        </b-form-row>
-                    </b-container>
 
 
-                    <form-button id="startDeepFrag" :style="!validate(false) ? 'cursor:not-allowed' : ''" :disabled="!validate(false)" @click.native="onSubmitClick" variant="primary" cls="float-right mb-4 ml-2">Start DeepFrag</form-button>
-                    <form-button :style="!isLoadBtnEnabled ? 'cursor:not-allowed' : ''" :disabled="!isLoadBtnEnabled" @click.native="onLoadClick" variant="primary" cls="float-right mb-4 ml-2">Load Saved Data</form-button>
-                    <form-button id="tempSave" :style="saveBtnStyle" :disabled="saveBtnDisabled" @click.native="onSaveClick" variant="primary" cls="float-right mb-4">Temporary Save</form-button>
+                        <form-button id="startDeepFrag" :style="!validate(false) ? 'cursor:not-allowed' : ''" :disabled="!validate(false)" @click.native="onSubmitClick" variant="primary" cls="float-right mb-4 ml-2">Start DeepFrag</form-button>
+                        <form-button :style="!isLoadBtnEnabled ? 'cursor:not-allowed' : ''" :disabled="!isLoadBtnEnabled" @click.native="onLoadClick" variant="primary" cls="float-right mb-4 ml-2">Load Saved Data</form-button>
+                        <form-button id="tempSave" :style="saveBtnStyle" :disabled="saveBtnDisabled" @click.native="onSaveClick" variant="primary" cls="float-right mb-4">Temporary Save</form-button>
 
-                </b-form>
-                <div v-else>
-                    <p>Unfortunately, your browser does not support WebAssembly.
-                    Please <a href='https://developer.mozilla.org/en-US/docs/WebAssembly#Browser_compatibility'
-                    target='_blank'>switch to a browser that does</a> (e.g., Google Chrome).</p>
+                    </b-form>
+                    <div v-else>
+                        <p>Unfortunately, your browser does not support WebAssembly.
+                        Please <a href='https://developer.mozilla.org/en-US/docs/WebAssembly#Browser_compatibility'
+                        target='_blank'>switch to a browser that does</a> (e.g., Google Chrome).</p>
+                    </div>
                 </div>
             </div>
         `,

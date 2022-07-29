@@ -139,116 +139,122 @@ let methodsFunctions = {
  */
 export function setup(): void {
     Vue.component('deepfrag-output', {
-        "template": `
+        "template": /*html*/ `
             <div>
-                <sub-section title="Visualization">
-                    <form-group
-                        label=""
-                        id="input-group-receptor-3dmol"
-                        description=""
-                    >
-                        <threedmol
-                            id="secondary-viewer"
-                            :hoverableClickable="false"
-                            :autoLoad="true"
-                            :yellowSphere="[$store.state.deepFragParams.center_x, $store.state.deepFragParams.center_y, $store.state.deepFragParams.center_z]"
-                            type="receptor"></threedmol>
-                    </form-group>
-                    <results-table></results-table>
-                    <p id="executionTime" class="text-center mb-0">Execution time: {{time}} seconds</p>
-                </sub-section>
+                <span v-if="!this.$store.state.viaApi">
+                    <sub-section title="Visualization">
+                        <form-group
+                            label=""
+                            id="input-group-receptor-3dmol"
+                            description=""
+                        >
+                            <threedmol
+                                id="secondary-viewer"
+                                :hoverableClickable="false"
+                                :autoLoad="true"
+                                :yellowSphere="[$store.state.deepFragParams.center_x, $store.state.deepFragParams.center_y, $store.state.deepFragParams.center_z]"
+                                type="receptor"></threedmol>
+                        </form-group>
+                        <results-table></results-table>
+                        <p id="executionTime" class="text-center mb-0">Execution time: {{time}} seconds</p>
+                    </sub-section>
 
-                <sub-section title="Output Files">
-                    <form-group v-if="scoresCSV !== ''"
-                        label="DeepFrag Fragments, Ranked"
-                        id="input-group-ranked-frags"
-                        description="The suggested fragments, ordered by score."
-                        :labelToLeft="false"
-                    >
-                        <b-form-textarea
-                            readonly
-                            id="textarea"
-                            v-model="scoresCSV"
-                            placeholder="CSV File"
-                            rows="3"
-                            max-rows="6"
-                            style="white-space: pre;"
-                            class="text-monospace"
-                            size="sm"
-                        ></b-form-textarea>
-                        <form-button id="downloadScores" :small="true" @click.native="scoresCSVDownload">Download</form-button>
-                    </form-group>
+                    <sub-section title="Output Files">
+                        <form-group v-if="scoresCSV !== ''"
+                            label="DeepFrag Fragments, Ranked"
+                            id="input-group-ranked-frags"
+                            description="The suggested fragments, ordered by score."
+                            :labelToLeft="false"
+                        >
+                            <b-form-textarea
+                                readonly
+                                id="textarea"
+                                v-model="scoresCSV"
+                                placeholder="CSV File"
+                                rows="3"
+                                max-rows="6"
+                                style="white-space: pre;"
+                                class="text-monospace"
+                                size="sm"
+                            ></b-form-textarea>
+                            <form-button id="downloadScores" :small="true" @click.native="scoresCSVDownload">Download</form-button>
+                        </form-group>
 
-                    <form-group
-                        label="Growing Point JSON File"
-                        id="input-group-point-json"
-                        description="The JSON-formatted 3D coordinate of the growing point."
-                        :labelToLeft="false"
-                    >
-                        <b-form-textarea
-                            readonly
-                            id="textarea"
-                            v-model="growingPointJSON"
-                            placeholder="Growing point JSON"
-                            rows="3"
-                            max-rows="6"
-                            style="white-space: pre;"
-                            class="text-monospace"
-                            size="sm"
-                        ></b-form-textarea>
-                        <form-button id="downloadGrowingPoint" :small="true" @click.native="growingPointJSONDownload">Download</form-button>
-                    </form-group>
+                        <form-group
+                            label="Growing Point JSON File"
+                            id="input-group-point-json"
+                            description="The JSON-formatted 3D coordinate of the growing point."
+                            :labelToLeft="false"
+                        >
+                            <b-form-textarea
+                                readonly
+                                id="textarea"
+                                v-model="growingPointJSON"
+                                placeholder="Growing point JSON"
+                                rows="3"
+                                max-rows="6"
+                                style="white-space: pre;"
+                                class="text-monospace"
+                                size="sm"
+                            ></b-form-textarea>
+                            <form-button id="downloadGrowingPoint" :small="true" @click.native="growingPointJSONDownload">Download</form-button>
+                        </form-group>
 
-                    <form-group
-                        label="Receptor PDB File"
-                        id="input-group-receptor-pdb"
-                        description="The PDB-formatted receptor file used for grid generation."
-                        :labelToLeft="false"
-                    >
-                        <b-form-textarea
-                            readonly
-                            id="textarea"
-                            v-model="receptorPdbTxtFrom3DMol"
-                            placeholder="Receptor PDB"
-                            rows="3"
-                            max-rows="6"
-                            style="white-space: pre;"
-                            class="text-monospace"
-                            size="sm"
-                        ></b-form-textarea>
-                        <form-button id="downloadReceptorPDB" :small="true" @click.native="receptorPDBDownload">Download</form-button>
-                    </form-group>
+                        <form-group
+                            label="Receptor PDB File"
+                            id="input-group-receptor-pdb"
+                            description="The PDB-formatted receptor file used for grid generation."
+                            :labelToLeft="false"
+                        >
+                            <b-form-textarea
+                                readonly
+                                id="textarea"
+                                v-model="receptorPdbTxtFrom3DMol"
+                                placeholder="Receptor PDB"
+                                rows="3"
+                                max-rows="6"
+                                style="white-space: pre;"
+                                class="text-monospace"
+                                size="sm"
+                            ></b-form-textarea>
+                            <form-button id="downloadReceptorPDB" :small="true" @click.native="receptorPDBDownload">Download</form-button>
+                        </form-group>
 
-                    <form-group
-                        label="Ligand PDB File"
-                        id="input-group-ligand-pdb"
-                        description="The PDB-formatted ligand file used for grid generation."
-                        :labelToLeft="false"
-                    >
-                        <b-form-textarea
-                            readonly
-                            id="textarea"
-                            v-model="ligandPdbTxtFrom3DMol"
-                            placeholder="Ligand PDB"
-                            rows="3"
-                            max-rows="6"
-                            style="white-space: pre;"
-                            class="text-monospace"
-                            size="sm"
-                        ></b-form-textarea>
-                        <form-button id="downloadLigandPDB" :small="true" @click.native="ligandPDBDownload">Download</form-button>
-                    </form-group>
-                </sub-section>
+                        <form-group
+                            label="Ligand PDB File"
+                            id="input-group-ligand-pdb"
+                            description="The PDB-formatted ligand file used for grid generation."
+                            :labelToLeft="false"
+                        >
+                            <b-form-textarea
+                                readonly
+                                id="textarea"
+                                v-model="ligandPdbTxtFrom3DMol"
+                                placeholder="Ligand PDB"
+                                rows="3"
+                                max-rows="6"
+                                style="white-space: pre;"
+                                class="text-monospace"
+                                size="sm"
+                            ></b-form-textarea>
+                            <form-button id="downloadLigandPDB" :small="true" @click.native="ligandPDBDownload">Download</form-button>
+                        </form-group>
+                    </sub-section>
 
-                <sub-section title="Caveats">
-                    <p>
-                        DeepFrag was trained on data from the
-                        <a href="https://bindingmoad.org/" target="_blank">Binding
-                        MOAD</a>. Accuracy may be artefactually high when
-                        running DeepFrag on one of the proteins catalogued in that
-                        database.
-                    </p>
-                </sub-section>
+                    <sub-section title="Caveats">
+                        <p>
+                            DeepFrag was trained on data from the
+                            <a href="https://bindingmoad.org/" target="_blank">Binding
+                            MOAD</a>. Accuracy may be artefactually high when
+                            running DeepFrag on one of the proteins catalogued in that
+                            database.
+                        </p>
+                    </sub-section>
+                </span>
+                <span v-else>
+                    <!-- If here, then accessing via api -->
+                    {{JSON.stringify(this.$store.state["deepFragOutput"])}}
+                </span>
             </div>
         `,
         "props": {},

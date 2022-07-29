@@ -92,7 +92,8 @@ export const store = new Vuex.Store({
         "isExampleData": false,
         "numRotations": 32,
         "reflectAndStepwiseRot": false,
-        "waitingMsg": ""
+        "waitingMsg": "",
+        "viaApi": window["deepFragPostData"] === true
     },
     "mutations": {
         /**
@@ -234,7 +235,7 @@ export const store = new Vuex.Store({
          */
         "loadVueXFromLocalStorage"(context: any): void {
             let data = JSON.parse(
-                sessionStorage.getItem("deepFragSaveData")
+                sessionStorage.getItem("deepFragSaveData") as string
             );
             const varNames = Object.keys(context.state);
             const varNamesLen = varNames.length;

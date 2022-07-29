@@ -21,7 +21,7 @@ declare var Vue;
  */
 export function setup(): void {
     Vue.component('deepfrag-running', {
-        "template": `
+        "template": /*html*/ `
             <div class="text-center">
                 <b-spinner style="width: 4rem; height: 4rem;" label="Working"></b-spinner>
                 <br /><br />

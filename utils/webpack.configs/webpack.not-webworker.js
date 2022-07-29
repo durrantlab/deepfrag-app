@@ -66,6 +66,14 @@ module.exports = merge(common, {
                 from: 'fuser-app',
                 to: 'fuser-app'
             },
+            {
+                from: 'src/api/api.php',
+                to: 'api.php'
+            },
+            {
+                from: 'src/api/test_api.html',
+                to: 'test_api.html'
+            }
         ]),
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output

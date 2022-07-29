@@ -62,7 +62,7 @@ export function setup(): void {
                                 <deepfrag-output></deepfrag-output>
                             </b-card-text>
                         </b-tab>
-                        <b-tab title="Start Over" :disabled="startOverTabDisabled">
+                        <b-tab title="Start Over" class="via-api-hidden" :disabled="startOverTabDisabled">
                             <b-card-text>
                                 <start-over></start-over>
                             </b-card-text>
@@ -127,7 +127,7 @@ export function setup(): void {
              */
             "startOverTabDisabled"(): boolean {
                 return this.$store.state["startOverTabDisabled"];
-            }
+            },
         },
 
         "methods": {},

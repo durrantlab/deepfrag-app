@@ -29,7 +29,7 @@ let computedFunctions = {
     "items"(): any[] {
         let data = this.$store.state["deepFragOutput"];
         let dataLen = data.length > 20 ? 20 : data.length;
-        let items = [];
+        let items: any[] = [];
         // let errorDetected = false;
         for (let i = 0; i < dataLen; i++) {
             const dataItem = data[i];
