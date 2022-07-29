@@ -4,7 +4,7 @@ Changes
 1.0.3
 -----
 
-* 
+* Added ability to access DeepFrag browser app via an API.
 
 1.0.2
 -----
