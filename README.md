@@ -1,5 +1,7 @@
 # DeepFrag Browser App 1.0.3
 
+Source code downloads: [[![Github All Releases](https://img.shields.io/github/downloads/durrantlab/deepfrag-app/total.svg)]()](https://img.shields.io/github/downloads/durrantlab/webina/total.svg)
+
 ## Introduction
 
 DeepFrag is a deep-learning model that recommends strategies for lead
